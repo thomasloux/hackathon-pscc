@@ -1,0 +1,26 @@
+# General
+nibabel
+pyradiomics
+monai
+SimpleITK
+numpy
+matplotlib
+seaborn
+torch
+ray
+scikit-learn
+kaggle
+
+# Requirements from 3dunet
+tensorboard
+tqdm
+setuptools
+h5py
+scipy
+scikit-image
+pyyaml
+pytest
+
+# Jupyter
+ipykernel
+ipywidgets
