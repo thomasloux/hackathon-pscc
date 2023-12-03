@@ -57,8 +57,10 @@ def inferrence(input, output, model):
     model = get_model().to(device)
     model.load_state_dict(torch.load(model_weigth_path))
 
-
     transform_eval = Compose()
+
+    # Should be derived from the training
+    threadhold = 0.5
 
     # Load images
     ImageDataset = monai.data.Dataset(data=liste_of_files, transform=transform_eval)
@@ -75,8 +77,7 @@ def inferrence(input, output, model):
             outputs = torch.sigmoid(outputs)
 
             # Thresholding
-            outputs = outputs > 0.5
-            outputs = outputs.float()
+            outputs = (outputs > threadhold).float()
 
             # Save prediction
             outputs = outputs.detach().cpu().numpy()
