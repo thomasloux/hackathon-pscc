@@ -29,6 +29,8 @@ import nibabel as nib
 import torch
 from model import get_model
 import argparse
+from dataset import LungCancerDataset
+from torch.utils.data import random_split
 
 ## Argparse ##
 parser = argparse.ArgumentParser(description='Training script for the PSCC Hackathon')
@@ -36,6 +38,10 @@ parser.add_argument('--save_folder', type=str, help='Folder to save the model', 
 
 args = parser.parse_args()
 folder_to_save = args.save_folder
+
+if os.path.isdir("model/" + folder_to_save):
+    raise ValueError("Folder already exists")
+os.mkdir("model/" + folder_to_save)
 
 
 # Device for training
@@ -73,55 +79,36 @@ segs = os.listdir(segs_directory)
 ct_scans.sort()
 segs.sort()
 
-# Train test split
-train_indexes, val_indexes = train_test_split(
-    list(range(len(ct_scans))), test_size=0.1, random_state=0
+transform = Compose(
+    [
+        lambda x: x.astype(np.float32)
+    ]
 )
 
-# Create a training data loader
-train_dataset = ImageDataset(
-    image_files=[ct_scans_directory + "/" + ct_scans[i] for i in train_indexes],
-    seg_files=[segs_directory + "/" + segs[i] for i in train_indexes],
-    transform=train_transforms,
-    seg_transform=train_transforms_seg
+dataset = LungCancerDataset(
+    root="data/train",
+    transform_img=transform,
+    transform_seg=transform
+    
 )
+
+
+
+train_dataset, val_dataset = random_split(dataset, [0.9, 0.1])
+
 train_loader = DataLoader(
     train_dataset,
-    batch_size=1,
+    batch_size=2,
     shuffle=True,
-    num_workers=1,
+    num_workers=10,
     pin_memory=torch.cuda.is_available(),
     pin_memory_device=device_name
-)
-
-# Create a validation data loader
-# val_transforms = Compose(
-#     [
-#         LoadImaged(keys=["image", "label"]),
-#         EnsureChannelFirstd(keys=["image", "label"]),
-#         Spacingd(
-#             keys=["image", "label"],
-#             pixdim=(1.5, 1.5, 2.0),
-#             mode=("bilinear", "nearest"),
-#         ),
-#         Orientationd(keys=["image", "label"], axcodes="RAS"),
-#         EnsureTyped(keys=["image", "label"]),
-#         NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
-#     ]
-# )
-
-# Create a validation data loader
-val_dataset = ImageDataset(
-    image_files=[ct_scans_directory + "/" + ct_scans[i] for i in val_indexes],
-    seg_files=[segs_directory + "/" + segs[i] for i in val_indexes],
-    transform=train_transforms,
-    seg_transform=train_transforms_seg
 )
 
 val_loader = DataLoader(
     val_dataset,
     batch_size=1,
-    num_workers=1,
+    num_workers=10,
     pin_memory=torch.cuda.is_available(),
     pin_memory_device=device_name
 )
@@ -208,7 +195,7 @@ y = epoch_loss_values
 plt.xlabel("epoch")
 plt.plot(x, y)
 plt.subplot(1, 2, 2)
-plt.title("Val Mean Dice")
+plt.title("Val Average Loss")
 x = [val_interval * (i + 1) for i in range(len(metric_values))]
 y = metric_values
 plt.xlabel("epoch")
