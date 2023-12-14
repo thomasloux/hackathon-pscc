@@ -16,6 +16,7 @@ from monai.transforms import (
     Resize,
     ToTensor,
     ScaleIntensityRange,
+    AsDiscrete
 )
 from monai.networks.layers import Norm
 from monai.networks.nets import UNet
@@ -50,10 +51,13 @@ logging.basicConfig(level=logging.INFO)
 # torchrun monai-ddp.py
 ############
 
-def setup():
+def setup(rank: int, world_size: int):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '20355'
+
     # initialize the process group
-    dist.init_process_group(backend="nccl")
-    torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+    torch.cuda.set_device(rank)
 
 def get_datasets(directory):
     """
@@ -70,7 +74,7 @@ def get_datasets(directory):
     ct_scans.sort()
     segs.sort()
 
-    num_images = len(ct_scans)
+    num_images = 20 # len(ct_scans)
 
     # Create a training data loader
     dataset = ImageDataset(
@@ -82,8 +86,8 @@ def get_datasets(directory):
     )
 
     # Train test split
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset, [0.7, 0.2, 0.1]
+    train_dataset, val_dataset = random_split(
+        dataset, [0.8, 0.2,]
     )
 
     batch_size = 2
@@ -109,20 +113,13 @@ def get_datasets(directory):
 
     val_loader = DataLoader(
         val_dataset,
-        batch_size= batch_size,
+        batch_size= 1,
         shuffle=False,
         num_workers=3,
         pin_memory=True,
         sampler=val_sampler,
     )
 
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size= batch_size,
-        shuffle=False,
-        pin_memory=True,
-        sampler=DistributedSampler(test_dataset),
-    )
     return train_loader, val_loader, test_loader
 
 def save_plot(epoch_loss_values: List[float], metric_values:List[float], folder_save: str):
@@ -145,12 +142,13 @@ def save_plot(epoch_loss_values: List[float], metric_values:List[float], folder_
     plt.savefig(os.path.join(folder_save, "loss_metric.png"))
 
 @record
-def main(folder_save, max_epochs=20):
-    setup()
+def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
+    setup(local_rank, world_size)
 
-    local_rank = int(os.environ["LOCAL_RANK"])
-    global_rank = int(os.environ["RANK"])
-    world_size = int(os.environ["WORLD_SIZE"])
+    global_rank = local_rank # Eviter de tout réécrire
+    # local_rank = int(os.environ["LOCAL_RANK"])
+    # global_rank = int(os.environ["RANK"])
+    # world_size = int(os.environ["WORLD_SIZE"])
     logging.info(f"local_rank: {local_rank}, global_rank: {global_rank}, world_size: {world_size}")
 
     train_loader, val_loader, test_loader = get_datasets("./data/train-512/preprocessed")
@@ -166,8 +164,6 @@ def main(folder_save, max_epochs=20):
     metric = DiceMetric(include_background=True, reduction="mean")
 
     directory = ""
-    if not os.path.exists(os.path.join(directory, "model", folder_save)):
-        os.makedirs(os.path.join(directory, "model", folder_save))
 
     print("Starting training")
 
@@ -177,6 +173,9 @@ def main(folder_save, max_epochs=20):
     best_metric_epoch = -1
     epoch_loss_values = []
     metric_values = []
+
+    num_train_data = len(train_loader.dataset)
+    num_val_data = len(val_loader.dataset)
 
     post_pred = Compose([AsDiscrete(argmax=True, to_onehot=2)])
     post_label = Compose([AsDiscrete(to_onehot=2)])
@@ -201,48 +200,43 @@ def main(folder_save, max_epochs=20):
             # scaler.step(optimizer)
             # scaler.update()
             epoch_loss += loss.item()
-            print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}")
-
-        epoch_loss = torch.tensor([epoch_loss]).to(local_rank)/len(train_loader)
-        dist.reduce(epoch_loss, 0, op=dist.ReduceOp.SUM)
+            # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}")
+        print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, train_loss: {epoch_loss/num_train_data:.4f}")
+        #epoch_loss = torch.tensor([epoch_loss]).to(local_rank)/len(train_loader)
+        #dist.reduce(epoch_loss, 0, op=dist.ReduceOp.SUM)
         # Assuming there is no padding
-        epoch_loss_values.append(epoch_loss.item()/world_size)
-        if local_rank == 0:
-            print(
-                f"{epoch + 1}/{max_epochs}, train_loss: {epoch_loss_values[-1]:.4f}"
-            )
+        epoch_loss_values.append(epoch_loss/num_train_data)
 
         ## Validation
         if (epoch + 1) % val_interval == 0:
             model.eval()
             with torch.no_grad():
-                value_total = 0
                 for val_data in val_loader:
                     val_inputs, val_segs = (
                         val_data[0].to(local_rank, non_blocking=True),
                         val_data[1].to(local_rank, non_blocking=True),
                     )
-                    val_outputs = model.module.predict(val_inputs)
-                    value = metric(val_outputs, val_segs)
-                    value_total += torch.sum(value).item() # sum over the batch
+                    val_outputs = model(val_inputs)[0]
+                    val_outputs = post_pred(val_outputs)
+                    val_segs = post_label(val_segs[0])
+                    metric(y_pred=val_outputs, y=val_segs)
                     # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, validation_dice: {value.item():.4f}")
-                value_total = torch.tensor([value_total]).to(local_rank)/len(val_loader)
-                dist.reduce(value_total, 0, op=dist.ReduceOp.SUM)
-                metric_values.append(value_total.item() / world_size)
+                # value_total = torch.tensor([value_total]).to(local_rank)/len(val_loader)
+                #dist.reduce(value_total, 0, op=dist.ReduceOp.SUM)
+                mean_value = metric.aggregate().item()
+                metric_values.append(mean_value)
+                metric.reset()
+                print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, validation_dice: {mean_value:.9f}")
                 # Save best metric model
                 # Also if on the same GPU (rank 0)
-                if value_total > best_metric and local_rank == 0:
-                    best_metric = value_total.item()
+                if mean_value > best_metric and local_rank == 0:
+                    best_metric = mean_value
                     best_metric_epoch = epoch + 1
                     torch.save(
                         model.module.state_dict(),
                         os.path.join(directory, "model", folder_save, "best_metric_model.pth"),
                     )
                     print("saved new best metric model")
-                if local_rank == 0:
-                    print(
-                        f"GPU {global_rank}: {epoch + 1}/{max_epochs}, mean validation_dice: {metric_values[-1]:.4f}"
-                        )
             # Scheduler step
             lr_scheduler.step(metric_values[-1])
 
@@ -251,6 +245,14 @@ def main(folder_save, max_epochs=20):
             f"train completed, best_metric: {best_metric:.4f} at epoch: {best_metric_epoch}"
         )
         save_plot(epoch_loss_values, metric_values, os.path.join(directory, "model", folder_save))
+
+    with open(os.path.join(directory, "model", folder_save, "train_loss.txt"), "w") as f:
+        f.write("Training loss\n")
+        for i, item in enumerate(epoch_loss_values):
+            f.write(f"Epoch {i+1}: {item}\n")
+        f.write("Validation dice\n")
+        for i, item in enumerate(metric_values):
+            f.write(f"Epoch {i+1}: {item}\n")
 
     dist.destroy_process_group()
 
@@ -263,5 +265,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    world_size = torch.cuda.device_count()
 
-    main(folder_save=args.folder_save, max_epochs=args.epochs)
+    directory = ""
+    if not os.path.exists(os.path.join(directory, "model", args.folder_save)):
+        print("Creating directory")
+        os.mkdir(os.path.join(directory, "model", args.folder_save))
+
+    #main(folder_save=args.folder_save, max_epochs=args.epochs)
+    mp.spawn(main, args=(world_size, args.folder_save, args.epochs), nprocs=world_size)

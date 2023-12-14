@@ -15,7 +15,7 @@ import nibabel as nib
 
 
 class LungCancerDataset(Dataset):
-    def __init__(self, root, transform_img=None, transform_seg=None, seg_dir="seg", image_dir="volume"):
+    def __init__(self, root, root_processed, transform_img=None, transform_seg=None, seg_dir="seg", image_dir="volume"):
         self.image_dir = image_dir
         self.seg_dir = seg_dir
         self.transform_img = transform_img
@@ -27,10 +27,13 @@ class LungCancerDataset(Dataset):
         if not os.path.isdir(root):
             raise ValueError("root must be a directory")
 
-        self.parent_dir_root = os.path.dirname(root)
+        self.parent_dir_root = root_processed
+        os.path.dirname(os.path.dirname(self.root))
         self.path_preprocessed = os.path.join(self.parent_dir_root, "preprocessed")
 
-        if not os.path.exists(self.path_preprocessed):
+        if not os.path.exists(os.path.dirname(self.path_preprocessed)) or not os.path.exists(self.path_preprocessed):
+            if not os.path.exists(os.path.dirname(self.path_preprocessed)):
+                os.mkdir(os.path.dirname(self.path_preprocessed))
             os.mkdir(self.path_preprocessed)
             os.mkdir(os.path.join(self.path_preprocessed, self.image_dir))
             os.mkdir(os.path.join(self.path_preprocessed, self.seg_dir))

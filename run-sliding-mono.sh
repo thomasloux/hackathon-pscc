@@ -4,8 +4,8 @@
 #SBATCH --nodes=1            # total number of nodes
 #SBATCH --ntasks-per-node=2  # number of tasks per node
 #SBATCH --gres=gpu:2         # number of GPUs reserved per node
-#SBATCH --cpus-per-task=6
-#SBATCH --time=01:00:00
+#SBATCH --cpus-per-task=16
+#SBATCH --time=10:00:00
 #SBATCH --output=log/pscc-training%j.out
 #SBATCH --error=log/pscc-training%j.err
 
@@ -23,11 +23,13 @@ echo ${head_node}.enst.fr:${port_number}
 source ~/.bashrc
 source activate pscc
 
-srun torchrun \
---nnodes=1 \
---nproc-per-node 2 \
---max-restarts=0 \
-monai-ddp-torchrun-sliding.py --epochs 10 --folder-save usingOneHot
+srun  python tutoriel.py \
+--total-epochs 200 \
+--folder-save testEval \
+--batch-size 30 \
+--data-dir /tsi/data_education/data_challenge/train \
+--folder-save model/cleanSlidingWindowCorrected \
+--save-every 5 \
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \
 # --rdzv-endpoint localhost:${port_number} \

@@ -34,7 +34,7 @@ from torch.utils.data import random_split
 
 ## Argparse ##
 parser = argparse.ArgumentParser(description='Training script for the PSCC Hackathon')
-parser.add_argument('--save_folder', type=str, help='Folder to save the model', default="model")
+parser.add_argument('--save-folder', type=str, help='Folder to save the model', default="model")
 
 args = parser.parse_args()
 folder_to_save = args.save_folder
@@ -50,7 +50,7 @@ device = torch.device(device_name)
 
 model = get_model().to(device)
 
-directory = ""
+# directory = ""
 
 # Create a training data loader
 # Add a dimension to the image
@@ -72,12 +72,12 @@ train_transforms_seg = Compose(
     ]
 )
 
-ct_scans_directory = directory + "data/train/volume"
-segs_directory = directory + "data/train/seg"
-ct_scans = os.listdir(ct_scans_directory)
-segs = os.listdir(segs_directory)
-ct_scans.sort()
-segs.sort()
+# ct_scans_directory = directory + "data/train/volume"
+# segs_directory = directory + "data/train/seg"
+# ct_scans = os.listdir(ct_scans_directory)
+# segs = os.listdir(segs_directory)
+# ct_scans.sort()
+# segs.sort()
 
 transform = Compose(
     [
@@ -86,12 +86,12 @@ transform = Compose(
 )
 
 dataset = LungCancerDataset(
-    root="data/train",
+    root="/tsi/data_education/data_challenge/train",
+    root_processed="data/train-512",
     transform_img=transform,
     transform_seg=transform
     
 )
-
 
 
 train_dataset, val_dataset = random_split(dataset, [0.9, 0.1])
