@@ -23,7 +23,8 @@ from monai.transforms import (
     Orientationd,
     ScaleIntensityRange,
     RandCropByPosNegLabeld,
-    Compose
+    Compose,
+    SpatialCropd,
 )
 
 from monai.config import print_config
@@ -76,6 +77,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -107,6 +109,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -147,6 +150,7 @@ class Trainer:
         train_data: DataLoader,
         val_data: DataLoader,
         optimizer: torch.optim.Optimizer,
+        lr_scheduler: torch.optim.lr_scheduler,
         loss_function: torch.nn.Module,
         metric: torch.nn.Module,
         gpu_id: int,
@@ -160,6 +164,7 @@ class Trainer:
         self.train_data = train_data
         self.val_data = val_data
         self.optimizer = optimizer
+        self.lr_scheduler = lr_scheduler
         self.loss_function = loss_function
         self.metric = metric
         self.save_every = save_every
@@ -213,7 +218,7 @@ class Trainer:
                 )
                 sw_batch_size = 4
                 val_outputs = sliding_window_inference(
-                    inputs, self.roi, sw_batch_size, self.model, overlap=0.7, sw_device=self.gpu_id, device=self.gpu_id
+                    inputs, self.roi, sw_batch_size, self.model, overlap=0.7, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
                 )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
@@ -225,6 +230,7 @@ class Trainer:
             print(f"Epoch {epoch} | Validation metric: {value_metric}")
             self.mean_metric_history.append(value_metric)
             self.metric.reset()
+            return value_metric
 
         self.model.train()
 
@@ -254,7 +260,9 @@ class Trainer:
                 self._save_checkpoint(epoch)
             
             if epoch % self.val_interval == 0:
-                self._validate(epoch)
+                value_metric = self._validate(epoch)
+
+            self.lr_scheduler.step(value_metric)
         
         if self.gpu_id == 0:
             self._plot()
@@ -271,7 +279,7 @@ def main(
     # Set up distributed training
     ddp_setup(rank, world_size)
 
-    roi = (128, 128, 64)
+    roi = (192, 192, 64)
 
     # Load data
     train_loader, val_loader = get_loader(batch_size, data_dir, roi)
@@ -285,11 +293,15 @@ def main(
             strides=(2, 2, 2, 2),
             num_res_units=2,
             norm=Norm.BATCH,
+            dropout=0.2,
     ).to(rank)
     model = DDP(model, device_ids=[rank])
 
     # Create optimizer
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, factor=0.1, patience=5, verbose=True
+    )
 
     # Define loss function
     loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
@@ -301,6 +313,7 @@ def main(
         train_loader,
         val_loader,
         optimizer,
+        lr_scheduler,
         loss_function,
         metric,
         rank,
