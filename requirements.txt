@@ -10,16 +10,10 @@ torch
 ray
 scikit-learn
 kaggle
-
-# Requirements from 3dunet
-tensorboard
 tqdm
-setuptools
-h5py
-scipy
-scikit-image
-pyyaml
-pytest
+
+# To make submission
+opencv-python
 
 # Jupyter
 ipykernel
