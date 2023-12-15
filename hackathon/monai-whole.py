@@ -45,12 +45,6 @@ from torch.distributed.elastic.multiprocessing.errors import record
 import logging
 logging.basicConfig(level=logging.INFO)
 
-############
-# This code is using torchrun to work
-# execute this code with:
-# torchrun monai-ddp.py
-############
-
 def setup(rank: int, world_size: int):
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '20355'
@@ -148,9 +142,7 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
     setup(local_rank, world_size)
 
     global_rank = local_rank # Eviter de tout réécrire
-    # local_rank = int(os.environ["LOCAL_RANK"])
-    # global_rank = int(os.environ["RANK"])
-    # world_size = int(os.environ["WORLD_SIZE"])
+
     logging.info(f"local_rank: {local_rank}, global_rank: {global_rank}, world_size: {world_size}")
 
     train_loader, val_loader = get_datasets("./data/train-512/preprocessed")
@@ -191,27 +183,17 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
                 batch_data[1].to(local_rank, non_blocking=True),
             )
             optimizer.zero_grad()
-            # with torch.cuda.amp.autocast():
+
             outputs = model.forward(inputs)
             loss = loss_function(outputs, segs)
             loss.backward()
             optimizer.step()
-            ## Optimization with automatic mixed precision
-            # scaler.scale(loss).backward()
-            # scaler.step(optimizer)
-            # scaler.update()
-            # segs_onehot = [post_label(i) for i in decollate_batch(segs)]
-            # outputs_softmax = [post_pred(i) for i in decollate_batch(outputs)]
-            # metric_value_test = metric(y_pred=outputs_softmax, y=segs_onehot)
-            # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}, batch_train_dice: {torch.mean(metric_value_test).item():.4f}")
+            
             epoch_loss += loss.item()
             # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}")
         print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, train_loss: {epoch_loss/len(train_loader):.4f}")
-        #epoch_loss = torch.tensor([epoch_loss]).to(local_rank)/len(train_loader)
-        #dist.reduce(epoch_loss, 0, op=dist.ReduceOp.SUM)
-        # Assuming there is no padding
+
         epoch_loss_values.append(epoch_loss/len(train_loader))
-        #metric.reset()
 
         ## Validation
         if (epoch + 1) % val_interval == 0:
@@ -227,12 +209,12 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
                     val_segs = [post_label(i) for i in decollate_batch(val_segs)]
                     metric(y_pred=val_outputs, y=val_segs)
                     # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, validation_dice: {value.item():.4f}")
-                # value_total = torch.tensor([value_total]).to(local_rank)/len(val_loader)
-                #dist.reduce(value_total, 0, op=dist.ReduceOp.SUM)
+
                 mean_value = metric.aggregate().item()
                 metric_values.append(mean_value)
                 metric.reset()
                 print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, validation_dice: {mean_value:.9f}")
+
                 # Save best metric model
                 # Also if on the same GPU (rank 0)
                 if mean_value > best_metric and local_rank == 0:
@@ -278,5 +260,4 @@ if __name__ == "__main__":
         print("Creating directory")
         os.mkdir(os.path.join(directory, "model", args.folder_save))
 
-    #main(folder_save=args.folder_save, max_epochs=args.epochs)
     mp.spawn(main, args=(world_size, args.folder_save, args.epochs), nprocs=world_size)
