@@ -90,7 +90,7 @@ def get_loader(batch_size, data_dir, roi):
                 label_key="label",
                 spatial_size=roi,
                 pos=1,
-                neg=1,
+                neg=2,
                 num_samples=4,
                 image_key="image",
                 image_threshold=0,
@@ -128,7 +128,6 @@ def get_loader(batch_size, data_dir, roi):
         train_ds,
         batch_size=batch_size,
         num_workers=4,
-        pin_memory=True,
         sampler=DistributedSampler(train_ds, shuffle=True),
     )
 
@@ -137,7 +136,6 @@ def get_loader(batch_size, data_dir, roi):
         batch_size=1,
         shuffle=False,
         num_workers=4,
-        pin_memory=True,
         sampler=DistributedSampler(val_ds, shuffle=False),
     )
 
@@ -218,7 +216,7 @@ class Trainer:
                 )
                 sw_batch_size = 4
                 val_outputs = sliding_window_inference(
-                    inputs, self.roi, sw_batch_size, self.model, overlap=0.7, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
+                    inputs, self.roi, sw_batch_size, self.model, overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
                 )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
@@ -279,7 +277,7 @@ def main(
     # Set up distributed training
     ddp_setup(rank, world_size)
 
-    roi = (192, 192, 64)
+    roi = (160, 160, 64)
 
     # Load data
     train_loader, val_loader = get_loader(batch_size, data_dir, roi)
@@ -297,10 +295,16 @@ def main(
     ).to(rank)
     model = DDP(model, device_ids=[rank])
 
+    # Load checkpoint
+    PATH = os.path.join(folder_save, "checkpoint.pt")
+    if os.path.exists(PATH):
+        model.load_state_dict(torch.load(PATH))
+        print(f"Checkpoint loaded from {PATH}")
+
     # Create optimizer
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=5, verbose=True
+        optimizer, factor=0.1, patience=10, verbose=True
     )
 
     # Define loss function

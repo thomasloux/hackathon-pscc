@@ -65,7 +65,9 @@ def get_datasets(directory):
     """
     # For preprocessed images
     train_transforms = None
-    train_transforms_seg = None
+    train_transforms_seg = Compose([
+        AsDiscrete(rounding="torchrounding")
+    ])
 
     ct_scans_directory = os.path.join(directory, "volume")
     segs_directory = os.path.join(directory, "seg")
@@ -74,7 +76,7 @@ def get_datasets(directory):
     ct_scans.sort()
     segs.sort()
 
-    num_images = 20 # len(ct_scans)
+    num_images = len(ct_scans)
 
     # Create a training data loader
     dataset = ImageDataset(
@@ -90,7 +92,7 @@ def get_datasets(directory):
         dataset, [0.8, 0.2,]
     )
 
-    batch_size = 2
+    batch_size = 3
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset,
@@ -113,14 +115,14 @@ def get_datasets(directory):
 
     val_loader = DataLoader(
         val_dataset,
-        batch_size= 1,
+        batch_size= 3,
         shuffle=False,
         num_workers=3,
         pin_memory=True,
         sampler=val_sampler,
     )
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader
 
 def save_plot(epoch_loss_values: List[float], metric_values:List[float], folder_save: str):
     """
@@ -151,17 +153,17 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
     # world_size = int(os.environ["WORLD_SIZE"])
     logging.info(f"local_rank: {local_rank}, global_rank: {global_rank}, world_size: {world_size}")
 
-    train_loader, val_loader, test_loader = get_datasets("./data/train-512/preprocessed")
+    train_loader, val_loader = get_datasets("./data/train-512/preprocessed")
 
     model = SegmentationModel().to(local_rank)
     model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
+    loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=False)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.1, patience=2, verbose=True
+        optimizer, mode="min", factor=0.1, patience=10, verbose=True
     )
-    metric = DiceMetric(include_background=True, reduction="mean")
+    metric = DiceMetric(include_background=False, reduction="mean")
 
     directory = ""
 
@@ -174,14 +176,13 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
     epoch_loss_values = []
     metric_values = []
 
-    num_train_data = len(train_loader.dataset)
-    num_val_data = len(val_loader.dataset)
 
     post_pred = Compose([AsDiscrete(argmax=True, to_onehot=2)])
     post_label = Compose([AsDiscrete(to_onehot=2)])
 
     for epoch in range(max_epochs):
         train_loader.sampler.set_epoch(epoch)
+        model.train()
         epoch_loss = 0
         for batch_data in train_loader:
             model.train()
@@ -199,13 +200,18 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
             # scaler.scale(loss).backward()
             # scaler.step(optimizer)
             # scaler.update()
+            # segs_onehot = [post_label(i) for i in decollate_batch(segs)]
+            # outputs_softmax = [post_pred(i) for i in decollate_batch(outputs)]
+            # metric_value_test = metric(y_pred=outputs_softmax, y=segs_onehot)
+            # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}, batch_train_dice: {torch.mean(metric_value_test).item():.4f}")
             epoch_loss += loss.item()
             # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, batch_train_loss: {loss.item():.4f}")
-        print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, train_loss: {epoch_loss/num_train_data:.4f}")
+        print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, train_loss: {epoch_loss/len(train_loader):.4f}")
         #epoch_loss = torch.tensor([epoch_loss]).to(local_rank)/len(train_loader)
         #dist.reduce(epoch_loss, 0, op=dist.ReduceOp.SUM)
         # Assuming there is no padding
-        epoch_loss_values.append(epoch_loss/num_train_data)
+        epoch_loss_values.append(epoch_loss/len(train_loader))
+        #metric.reset()
 
         ## Validation
         if (epoch + 1) % val_interval == 0:
@@ -216,9 +222,9 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
                         val_data[0].to(local_rank, non_blocking=True),
                         val_data[1].to(local_rank, non_blocking=True),
                     )
-                    val_outputs = model(val_inputs)[0]
-                    val_outputs = post_pred(val_outputs)
-                    val_segs = post_label(val_segs[0])
+                    val_outputs = model(val_inputs)
+                    val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
+                    val_segs = [post_label(i) for i in decollate_batch(val_segs)]
                     metric(y_pred=val_outputs, y=val_segs)
                     # print(f"GPU {global_rank}: {epoch + 1}/{max_epochs}, validation_dice: {value.item():.4f}")
                 # value_total = torch.tensor([value_total]).to(local_rank)/len(val_loader)

@@ -26,6 +26,7 @@ from monai.transforms import (
     Compose,
     SpatialCropd,
     Invertd,
+    KeepLargestConnectedComponentd,
     SaveImaged,
 )
 
@@ -91,10 +92,10 @@ post_transform = Compose(
         ),
         AsDiscreted(
             keys="pred",
-            argmax=True,
-            to_onehot=2
+            argmax=True
         ),
-        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir="./out", output_postfix="PredSeg", resample=False),
+        KeepLargestConnectedComponentd(keys="pred", connectivity=1),
+        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir="./out/withLargestConnected", resample=False),
     ]
 )
 

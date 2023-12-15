@@ -24,11 +24,10 @@ source ~/.bashrc
 source activate pscc
 
 srun  python tutoriel.py \
---total-epochs 50 \
---folder-save testEval \
+--total-epochs 100 \
 --batch-size 10 \
 --data-dir /tsi/data_education/data_challenge/train \
---folder-save model/largeRoi \
+--folder-save model/cleanSlidingWindowCorrected2 \
 --save-every 5 \
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \
