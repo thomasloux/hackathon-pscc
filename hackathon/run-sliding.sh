@@ -23,7 +23,7 @@ echo ${head_node}.enst.fr:${port_number}
 source ~/.bashrc
 source activate pscc
 
-srun  python tutoriel.py \
+srun  python monai-sliding.py \
 --total-epochs 100 \
 --batch-size 10 \
 --data-dir /tsi/data_education/data_challenge/train \
