@@ -1,0 +1,646 @@
+node24.enst.fr:39659
+[GPU1] Epoch 0 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 0 | Batchsize: 120 | Steps: 4
+Epoch 0 | Training loss: 1.3926605880260468
+Epoch 0 | Training loss: 1.3913681507110596
+Epoch 0 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 0 | Validation metric: 0.00272299419157207
+Epoch 0 | Validation metric: 0.00272299419157207
+[GPU1] Epoch 1 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 1 | Batchsize: 120 | Steps: 4
+Epoch 1 | Training loss: 1.23126420378685
+Epoch 1 | Training loss: 1.231436848640442
+Epoch 1 | Validation metric: 0.0002488003228791058
+Epoch 1 | Validation metric: 0.0002488003228791058
+[GPU0] Epoch 2 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 2 | Batchsize: 120 | Steps: 4
+Epoch 2 | Training loss: 1.1391632556915283
+Epoch 2 | Training loss: 1.1391431987285614
+Epoch 2 | Validation metric: 0.00018399210239294916
+Epoch 2 | Validation metric: 0.00018399210239294916
+[GPU0] Epoch 3 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 3 | Batchsize: 120 | Steps: 4
+Epoch 3 | Training loss: 1.0662947595119476
+Epoch 3 | Training loss: 1.0660386681556702
+Epoch 3 | Validation metric: 0.00016706116730347276
+Epoch 3 | Validation metric: 0.00016706116730347276
+[GPU0] Epoch 4 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 4 | Batchsize: 120 | Steps: 4
+Epoch 4 | Training loss: 1.0029489398002625
+Epoch 4 | Training loss: 1.0038720965385437
+Epoch 4 | Validation metric: 0.0003162396315019578
+Epoch 4 | Validation metric: 0.0003162396315019578
+[GPU1] Epoch 5 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 5 | Batchsize: 120 | Steps: 4
+Epoch 5 | Training loss: 0.9488176703453064
+Epoch 5 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 5 | Training loss: 0.9486403316259384
+Epoch 5 | Validation metric: 5.53234203835018e-05
+Epoch 5 | Validation metric: 5.53234203835018e-05
+[GPU1] Epoch 6 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 6 | Batchsize: 120 | Steps: 4
+Epoch 6 | Training loss: 0.9002928137779236
+Epoch 6 | Training loss: 0.901264101266861
+Epoch 6 | Validation metric: 0.0
+Epoch 6 | Validation metric: 0.0
+[GPU1] Epoch 7 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 7 | Batchsize: 120 | Steps: 4
+Epoch 7 | Training loss: 0.8572030663490295
+Epoch 7 | Training loss: 0.8590396493673325
+Epoch 7 | Validation metric: 0.0
+Epoch 7 | Validation metric: 0.0
+[GPU0] Epoch 8 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 8 | Batchsize: 120 | Steps: 4
+Epoch 8 | Training loss: 0.8169843405485153
+Epoch 8 | Training loss: 0.819526731967926
+Epoch 8 | Validation metric: 0.0
+Epoch 8 | Validation metric: 0.0
+[GPU0] Epoch 9 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 9 | Batchsize: 120 | Steps: 4
+Epoch 9 | Training loss: 0.7799763083457947
+Epoch 9 | Training loss: 0.7820712625980377
+Epoch 9 | Validation metric: 0.0
+Epoch 9 | Validation metric: 0.0
+[GPU1] Epoch 10 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 10 | Batchsize: 120 | Steps: 4
+Epoch 10 | Training loss: 0.7497673481702805
+Epoch 10 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 10 | Training loss: 0.7457692921161652
+Epoch 10 | Validation metric: 2.427066647214815e-06
+Epoch 10 | Validation metric: 2.427066647214815e-06
+[GPU1] Epoch 11 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 11 | Batchsize: 120 | Steps: 4
+Epoch 11 | Training loss: 0.7204539626836777
+Epoch 11 | Training loss: 0.7212272435426712
+Epoch 11 | Validation metric: 0.0
+Epoch 11 | Validation metric: 0.0
+[GPU0] Epoch 12 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 12 | Batchsize: 120 | Steps: 4
+Epoch 12 | Training loss: 0.6898121684789658
+Epoch 12 | Training loss: 0.6936024278402328
+Epoch 12 | Validation metric: 3.3192050068464596e-06
+Epoch 12 | Validation metric: 3.3192050068464596e-06
+[GPU1] Epoch 13 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 13 | Batchsize: 120 | Steps: 4
+Epoch 13 | Training loss: 0.6664659976959229
+Epoch 13 | Training loss: 0.668101504445076
+Epoch 13 | Validation metric: 0.0022680475376546383
+Epoch 13 | Validation metric: 0.0022680475376546383
+[GPU1] Epoch 14 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 14 | Batchsize: 120 | Steps: 4
+Epoch 14 | Training loss: 0.6477379649877548
+Epoch 14 | Training loss: 0.6445033550262451
+Epoch 14 | Validation metric: 0.008416697382926941
+Epoch 14 | Validation metric: 0.008416697382926941
+[GPU1] Epoch 15 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 15 | Batchsize: 120 | Steps: 4
+Epoch 15 | Training loss: 0.6278931647539139
+Epoch 15 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 15 | Training loss: 0.6252996176481247
+Epoch 15 | Validation metric: 0.020594993606209755
+Epoch 15 | Validation metric: 0.020594993606209755
+[GPU1] Epoch 16 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 16 | Batchsize: 120 | Steps: 4
+Epoch 16 | Training loss: 0.6073782294988632
+Epoch 16 | Training loss: 0.6059287339448929
+Epoch 16 | Validation metric: 0.0012301240349188447
+Epoch 16 | Validation metric: 0.0012301240349188447
+[GPU1] Epoch 17 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 17 | Batchsize: 120 | Steps: 4
+Epoch 17 | Training loss: 0.5863870978355408
+Epoch 17 | Training loss: 0.5877289921045303
+Epoch 17 | Validation metric: 1.5573326891171746e-05
+Epoch 17 | Validation metric: 1.5573326891171746e-05
+[GPU0] Epoch 18 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 18 | Batchsize: 120 | Steps: 4
+Epoch 18 | Training loss: 0.5777398645877838
+Epoch 18 | Training loss: 0.5741995126008987
+Epoch 18 | Validation metric: 0.00044066712143830955
+Epoch 18 | Validation metric: 0.00044066712143830955
+[GPU1] Epoch 19 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 19 | Batchsize: 120 | Steps: 4
+Epoch 19 | Training loss: 0.5581641793251038
+Epoch 19 | Training loss: 0.5628218203783035
+Epoch 19 | Validation metric: 0.0010208160383626819
+Epoch 19 | Validation metric: 0.0010208160383626819
+[GPU0] Epoch 20 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 20 | Batchsize: 120 | Steps: 4
+Epoch 20 | Training loss: 0.5527613013982773
+Epoch 20 | Training loss: 0.5533352047204971
+Epoch 20 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 20 | Validation metric: 0.04003666341304779
+Epoch 20 | Validation metric: 0.04003666341304779
+[GPU0] Epoch 21 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 21 | Batchsize: 120 | Steps: 4
+Epoch 21 | Training loss: 0.5398586541414261
+Epoch 21 | Training loss: 0.5432125926017761
+Epoch 21 | Validation metric: 0.07333176583051682
+Epoch 21 | Validation metric: 0.07333176583051682
+[GPU1] Epoch 22 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 22 | Batchsize: 120 | Steps: 4
+Epoch 22 | Training loss: 0.5226258784532547
+Epoch 22 | Training loss: 0.5303747802972794
+Epoch 22 | Validation metric: 0.07180093973875046
+Epoch 22 | Validation metric: 0.07180093973875046
+[GPU0] Epoch 23 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 23 | Batchsize: 120 | Steps: 4
+Epoch 23 | Training loss: 0.524461105465889
+Epoch 23 | Training loss: 0.5201027616858482
+Epoch 23 | Validation metric: 0.0153553681448102
+Epoch 23 | Validation metric: 0.0153553681448102
+[GPU1] Epoch 24 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 24 | Batchsize: 120 | Steps: 4
+Epoch 24 | Training loss: 0.5133366584777832
+Epoch 24 | Training loss: 0.5104632303118706
+Epoch 24 | Validation metric: 0.010731304995715618
+Epoch 24 | Validation metric: 0.010731304995715618
+[GPU1] Epoch 25 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 25 | Batchsize: 120 | Steps: 4
+Epoch 25 | Training loss: 0.5023117437958717
+Epoch 25 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 25 | Training loss: 0.506349727511406
+Epoch 25 | Validation metric: 0.06086752936244011
+Epoch 25 | Validation metric: 0.06086752936244011
+[GPU1] Epoch 26 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 26 | Batchsize: 120 | Steps: 4
+Epoch 26 | Training loss: 0.49236367642879486
+Epoch 26 | Training loss: 0.5031692981719971
+Epoch 26 | Validation metric: 0.010656604543328285
+Epoch 26 | Validation metric: 0.010656604543328285
+[GPU0] Epoch 27 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 27 | Batchsize: 120 | Steps: 4
+Epoch 27 | Training loss: 0.48532895743846893
+Epoch 27 | Training loss: 0.49722500145435333
+Epoch 27 | Validation metric: 0.08369625359773636
+Epoch 27 | Validation metric: 0.08369625359773636
+[GPU0] Epoch 28 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 28 | Batchsize: 120 | Steps: 4
+Epoch 28 | Training loss: 0.4842710793018341
+Epoch 28 | Training loss: 0.4785625785589218
+Epoch 28 | Validation metric: 0.1845395565032959
+Epoch 28 | Validation metric: 0.1845395565032959
+[GPU1] Epoch 29 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 29 | Batchsize: 120 | Steps: 4
+Epoch 29 | Training loss: 0.47687650471925735
+Epoch 29 | Training loss: 0.4727698564529419
+Epoch 29 | Validation metric: 0.15624094009399414
+Epoch 29 | Validation metric: 0.15624094009399414
+[GPU0] Epoch 30 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 30 | Batchsize: 120 | Steps: 4
+Epoch 30 | Training loss: 0.47487884759902954
+Epoch 30 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 30 | Training loss: 0.48190853744745255
+Epoch 30 | Validation metric: 0.1784868985414505
+Epoch 30 | Validation metric: 0.1784868985414505
+[GPU0] Epoch 31 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 31 | Batchsize: 120 | Steps: 4
+Epoch 31 | Training loss: 0.46686166524887085
+Epoch 31 | Training loss: 0.46565139293670654
+Epoch 31 | Validation metric: 0.20626875758171082
+Epoch 31 | Validation metric: 0.20626875758171082
+[GPU0] Epoch 32 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 32 | Batchsize: 120 | Steps: 4
+Epoch 32 | Training loss: 0.4536685571074486
+Epoch 32 | Training loss: 0.46368300914764404
+Epoch 32 | Validation metric: 0.12827818095684052
+Epoch 32 | Validation metric: 0.12827818095684052
+[GPU0] Epoch 33 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 33 | Batchsize: 120 | Steps: 4
+Epoch 33 | Training loss: 0.4538012817502022
+Epoch 33 | Training loss: 0.4642183929681778
+Epoch 33 | Validation metric: 0.10819172859191895
+Epoch 33 | Validation metric: 0.10819172859191895
+[GPU1] Epoch 34 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 34 | Batchsize: 120 | Steps: 4
+Epoch 34 | Training loss: 0.45107194036245346
+Epoch 34 | Training loss: 0.45175188034772873
+Epoch 34 | Validation metric: 0.21284760534763336
+Epoch 34 | Validation metric: 0.21284760534763336
+[GPU1] Epoch 35 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 35 | Batchsize: 120 | Steps: 4
+Epoch 35 | Training loss: 0.4505721479654312
+Epoch 35 | Training loss: 0.44670943170785904
+Epoch 35 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 35 | Validation metric: 0.035374902188777924
+Epoch 35 | Validation metric: 0.035374902188777924
+[GPU0] Epoch 36 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 36 | Batchsize: 120 | Steps: 4
+Epoch 36 | Training loss: 0.43801362812519073
+Epoch 36 | Training loss: 0.43493084609508514
+Epoch 36 | Validation metric: 0.0708482414484024
+Epoch 36 | Validation metric: 0.0708482414484024
+[GPU0] Epoch 37 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 37 | Batchsize: 120 | Steps: 4
+Epoch 37 | Training loss: 0.4391186237335205
+Epoch 37 | Training loss: 0.4329754710197449
+Epoch 37 | Validation metric: 0.20019547641277313
+Epoch 37 | Validation metric: 0.20019547641277313
+[GPU1] Epoch 38 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 38 | Batchsize: 120 | Steps: 4
+Epoch 38 | Training loss: 0.4315279573202133
+Epoch 38 | Training loss: 0.4209864214062691
+Epoch 38 | Validation metric: 0.20529013872146606
+Epoch 38 | Validation metric: 0.20529013872146606
+[GPU0] Epoch 39 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 39 | Batchsize: 120 | Steps: 4
+Epoch 39 | Training loss: 0.41960056871175766
+Epoch 39 | Training loss: 0.42148831486701965
+Epoch 39 | Validation metric: 0.1446920782327652
+Epoch 39 | Validation metric: 0.1446920782327652
+[GPU1] Epoch 40 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 40 | Batchsize: 120 | Steps: 4
+Epoch 40 | Training loss: 0.42575782537460327
+Epoch 40 | Training loss: 0.41659726947546005
+Epoch 40 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 40 | Validation metric: 0.12428862601518631
+Epoch 40 | Validation metric: 0.12428862601518631
+[GPU1] Epoch 41 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 41 | Batchsize: 120 | Steps: 4
+Epoch 41 | Training loss: 0.40976736694574356
+Epoch 41 | Training loss: 0.4131506085395813
+Epoch 41 | Validation metric: 0.16967177391052246
+Epoch 41 | Validation metric: 0.16967177391052246
+[GPU0] Epoch 42 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 42 | Batchsize: 120 | Steps: 4
+Epoch 42 | Training loss: 0.4102162718772888
+Epoch 42 | Training loss: 0.40944231301546097
+Epoch 42 | Validation metric: 0.2326936274766922
+Epoch 42 | Validation metric: 0.2326936274766922
+[GPU0] Epoch 43 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 43 | Batchsize: 120 | Steps: 4
+Epoch 43 | Training loss: 0.3991306871175766
+Epoch 43 | Training loss: 0.4071386680006981
+Epoch 43 | Validation metric: 0.251403272151947
+Epoch 43 | Validation metric: 0.251403272151947
+[GPU1] Epoch 44 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 44 | Batchsize: 120 | Steps: 4
+Epoch 44 | Training loss: 0.4034072831273079
+Epoch 44 | Training loss: 0.4052889943122864
+Epoch 44 | Validation metric: 0.14357958734035492
+Epoch 44 | Validation metric: 0.14357958734035492
+[GPU0] Epoch 45 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 45 | Batchsize: 120 | Steps: 4
+Epoch 45 | Training loss: 0.4010808691382408
+Epoch 45 | Training loss: 0.4179721772670746
+Epoch 45 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 45 | Validation metric: 0.009448429569602013
+Epoch 45 | Validation metric: 0.009448429569602013
+[GPU1] Epoch 46 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 46 | Batchsize: 120 | Steps: 4
+Epoch 46 | Training loss: 0.41599953919649124
+Epoch 46 | Training loss: 0.409687340259552
+Epoch 46 | Validation metric: 0.2379300892353058
+Epoch 46 | Validation metric: 0.2379300892353058
+[GPU0] Epoch 47 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 47 | Batchsize: 120 | Steps: 4
+Epoch 47 | Training loss: 0.4173249527812004
+Epoch 47 | Training loss: 0.4119793474674225
+Epoch 47 | Validation metric: 0.15336354076862335
+Epoch 47 | Validation metric: 0.15336354076862335
+[GPU1] Epoch 48 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 48 | Batchsize: 120 | Steps: 4
+Epoch 48 | Training loss: 0.40068259090185165
+Epoch 48 | Training loss: 0.38605958223342896
+Epoch 48 | Validation metric: 0.07298531383275986
+Epoch 48 | Validation metric: 0.07298531383275986
+[GPU1] Epoch 49 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 49 | Batchsize: 120 | Steps: 4
+Epoch 49 | Training loss: 0.3872026950120926
+Epoch 49 | Training loss: 0.401170939207077
+Epoch 49 | Validation metric: 0.2993457019329071
+Epoch 49 | Validation metric: 0.2993457019329071
+[GPU1] Epoch 50 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 50 | Batchsize: 120 | Steps: 4
+Epoch 50 | Training loss: 0.4052485451102257
+Epoch 50 | Training loss: 0.38378457725048065
+Epoch 50 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 50 | Validation metric: 0.15763692557811737
+Epoch 50 | Validation metric: 0.15763692557811737
+[GPU1] Epoch 51 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 51 | Batchsize: 120 | Steps: 4
+Epoch 51 | Training loss: 0.3847251236438751
+Epoch 51 | Training loss: 0.3926917836070061
+Epoch 51 | Validation metric: 0.21932588517665863
+Epoch 51 | Validation metric: 0.21932588517665863
+[GPU0] Epoch 52 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 52 | Batchsize: 120 | Steps: 4
+Epoch 52 | Training loss: 0.3829728364944458
+Epoch 52 | Training loss: 0.3837507516145706
+Epoch 52 | Validation metric: 0.08208127319812775
+Epoch 52 | Validation metric: 0.08208127319812775
+[GPU0] Epoch 53 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 53 | Batchsize: 120 | Steps: 4
+Epoch 53 | Training loss: 0.38765786588191986
+Epoch 53 | Training loss: 0.37650464475154877
+Epoch 53 | Validation metric: 0.10214918106794357
+Epoch 53 | Validation metric: 0.10214918106794357
+[GPU1] Epoch 54 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 54 | Batchsize: 120 | Steps: 4
+Epoch 54 | Training loss: 0.3809065520763397
+Epoch 54 | Training loss: 0.383871927857399
+Epoch 54 | Validation metric: 0.10199303925037384
+Epoch 54 | Validation metric: 0.10199303925037384
+[GPU1] Epoch 55 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 55 | Batchsize: 120 | Steps: 4
+Epoch 55 | Training loss: 0.3810502141714096
+Epoch 55 | Training loss: 0.3719022050499916
+Epoch 55 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 55 | Validation metric: 0.090549997985363
+Epoch 55 | Validation metric: 0.090549997985363
+[GPU1] Epoch 56 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 56 | Batchsize: 120 | Steps: 4
+Epoch 56 | Training loss: 0.3821548521518707
+Epoch 56 | Training loss: 0.361547514796257
+Epoch 56 | Validation metric: 0.28600332140922546
+Epoch 56 | Validation metric: 0.28600332140922546
+[GPU1] Epoch 57 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 57 | Batchsize: 120 | Steps: 4
+Epoch 57 | Training loss: 0.37179527431726456
+Epoch 57 | Training loss: 0.3743140622973442
+Epoch 57 | Validation metric: 0.1559867560863495
+Epoch 57 | Validation metric: 0.1559867560863495
+[GPU1] Epoch 58 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 58 | Batchsize: 120 | Steps: 4
+Epoch 58 | Training loss: 0.36706696450710297
+Epoch 58 | Training loss: 0.36793386191129684
+Epoch 58 | Validation metric: 0.15111158788204193
+Epoch 58 | Validation metric: 0.15111158788204193
+[GPU1] Epoch 59 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 59 | Batchsize: 120 | Steps: 4
+Epoch 59 | Training loss: 0.35369905829429626
+Epoch 59 | Training loss: 0.37527716904878616
+Epoch 59 | Validation metric: 0.2893487811088562
+Epoch 59 | Validation metric: 0.2893487811088562
+[GPU0] Epoch 60 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 60 | Batchsize: 120 | Steps: 4
+Epoch 60 | Training loss: 0.36494945734739304
+Epoch 60 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 60 | Training loss: 0.3778488412499428
+Epoch 60 | Validation metric: 0.05775671452283859
+Epoch 60 | Validation metric: 0.05775671452283859
+[GPU0] Epoch 61 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 61 | Batchsize: 120 | Steps: 4
+Epoch 61 | Training loss: 0.35520273447036743
+Epoch 61 | Training loss: 0.33820366859436035
+Epoch 61 | Validation metric: 0.24210228025913239
+Epoch 61 | Validation metric: 0.24210228025913239
+[GPU1] Epoch 62 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 62 | Batchsize: 120 | Steps: 4
+Epoch 62 | Training loss: 0.35461848974227905
+Epoch 62 | Training loss: 0.36170630156993866
+Epoch 62 | Validation metric: 0.20513416826725006
+Epoch 62 | Validation metric: 0.20513416826725006
+[GPU0] Epoch 63 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 63 | Batchsize: 120 | Steps: 4
+Epoch 63 | Training loss: 0.35344939678907394
+Epoch 63 | Training loss: 0.36139214038848877
+Epoch 63 | Validation metric: 0.06803440302610397
+Epoch 63 | Validation metric: 0.06803440302610397
+[GPU1] Epoch 64 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 64 | Batchsize: 120 | Steps: 4
+Epoch 64 | Training loss: 0.35707107931375504
+Epoch 64 | Training loss: 0.34321192651987076
+Epoch 64 | Validation metric: 0.3633173704147339
+Epoch 64 | Validation metric: 0.3633173704147339
+[GPU0] Epoch 65 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 65 | Batchsize: 120 | Steps: 4
+Epoch 65 | Training loss: 0.36459459364414215
+Epoch 65 | Training loss: 0.34499742090702057
+Epoch 65 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 65 | Validation metric: 0.25447824597358704
+Epoch 65 | Validation metric: 0.25447824597358704
+[GPU1] Epoch 66 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 66 | Batchsize: 120 | Steps: 4
+Epoch 66 | Training loss: 0.35790932178497314
+Epoch 66 | Training loss: 0.3495611399412155
+Epoch 66 | Validation metric: 0.14761075377464294
+Epoch 66 | Validation metric: 0.14761075377464294
+[GPU1] Epoch 67 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 67 | Batchsize: 120 | Steps: 4
+Epoch 67 | Training loss: 0.34204302728176117
+Epoch 67 | Training loss: 0.36118191480636597
+Epoch 67 | Validation metric: 0.25613558292388916
+Epoch 67 | Validation metric: 0.25613558292388916
+[GPU1] Epoch 68 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 68 | Batchsize: 120 | Steps: 4
+Epoch 68 | Training loss: 0.35885314643383026
+Epoch 68 | Training loss: 0.3430775851011276
+Epoch 68 | Validation metric: 0.13293957710266113
+Epoch 68 | Validation metric: 0.13293957710266113
+[GPU0] Epoch 69 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 69 | Batchsize: 120 | Steps: 4
+Epoch 69 | Training loss: 0.3534580394625664
+Epoch 69 | Training loss: 0.34892870485782623
+Epoch 69 | Validation metric: 0.11582376062870026
+Epoch 69 | Validation metric: 0.11582376062870026
+[GPU1] Epoch 70 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 70 | Batchsize: 120 | Steps: 4
+Epoch 70 | Training loss: 0.34420304745435715
+Epoch 70 | Training loss: 0.3566112369298935
+Epoch 70 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 70 | Validation metric: 0.10067877173423767
+Epoch 70 | Validation metric: 0.10067877173423767
+[GPU0] Epoch 71 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 71 | Batchsize: 120 | Steps: 4
+Epoch 71 | Training loss: 0.3555535227060318
+Epoch 71 | Training loss: 0.3458639681339264
+Epoch 71 | Validation metric: 0.10080191493034363
+Epoch 71 | Validation metric: 0.10080191493034363
+[GPU0] Epoch 72 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 72 | Batchsize: 120 | Steps: 4
+Epoch 72 | Training loss: 0.338425911962986
+Epoch 72 | Training loss: 0.3312378451228142
+Epoch 72 | Validation metric: 0.22709417343139648
+Epoch 72 | Validation metric: 0.22709417343139648
+[GPU1] Epoch 73 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 73 | Batchsize: 120 | Steps: 4
+Epoch 73 | Training loss: 0.3356824517250061
+Epoch 73 | Training loss: 0.34287822246551514
+Epoch 73 | Validation metric: 0.22722601890563965
+Epoch 73 | Validation metric: 0.22722601890563965
+[GPU1] Epoch 74 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 74 | Batchsize: 120 | Steps: 4
+Epoch 74 | Training loss: 0.32670043408870697
+Epoch 74 | Training loss: 0.33455663174390793
+Epoch 74 | Validation metric: 0.2270338088274002
+Epoch 74 | Validation metric: 0.2270338088274002
+[GPU0] Epoch 75 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 75 | Batchsize: 120 | Steps: 4
+Epoch 75 | Training loss: 0.34176934510469437
+Epoch 75 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 75 | Training loss: 0.33913421630859375
+Epoch 75 | Validation metric: 0.1189044639468193
+Epoch 75 | Validation metric: 0.1189044639468193
+[GPU1] Epoch 76 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 76 | Batchsize: 120 | Steps: 4
+Epoch 76 | Training loss: 0.33637408912181854
+Epoch 76 | Training loss: 0.334039144217968
+Epoch 76 | Validation metric: 0.09241417050361633
+Epoch 76 | Validation metric: 0.09241417050361633
+[GPU1] Epoch 77 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 77 | Batchsize: 120 | Steps: 4
+Epoch 77 | Training loss: 0.3336733505129814
+Epoch 77 | Training loss: 0.33775100857019424
+Epoch 77 | Validation metric: 0.3837112486362457
+Epoch 77 | Validation metric: 0.3837112486362457
+[GPU1] Epoch 78 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 78 | Batchsize: 120 | Steps: 4
+Epoch 78 | Training loss: 0.34507182240486145
+Epoch 78 | Training loss: 0.32087573409080505
+Epoch 78 | Validation metric: 0.377684086561203
+Epoch 78 | Validation metric: 0.377684086561203
+[GPU1] Epoch 79 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 79 | Batchsize: 120 | Steps: 4
+Epoch 79 | Training loss: 0.32098086178302765
+Epoch 79 | Training loss: 0.33277706056833267
+Epoch 79 | Validation metric: 0.24335774779319763
+Epoch 79 | Validation metric: 0.24335774779319763
+[GPU1] Epoch 80 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 80 | Batchsize: 120 | Steps: 4
+Epoch 80 | Training loss: 0.3255957067012787
+Epoch 80 | Training loss: 0.3350377678871155
+Epoch 80 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 80 | Validation metric: 0.15446805953979492
+Epoch 80 | Validation metric: 0.15446805953979492
+[GPU0] Epoch 81 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 81 | Batchsize: 120 | Steps: 4
+Epoch 81 | Training loss: 0.33249878883361816
+Epoch 81 | Training loss: 0.33179671317338943
+Epoch 81 | Validation metric: 0.28055936098098755
+Epoch 81 | Validation metric: 0.28055936098098755
+[GPU0] Epoch 82 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 82 | Batchsize: 120 | Steps: 4
+Epoch 82 | Training loss: 0.3020486608147621
+Epoch 82 | Training loss: 0.3350827693939209
+Epoch 82 | Validation metric: 0.25369253754615784
+Epoch 82 | Validation metric: 0.25369253754615784
+[GPU1] Epoch 83 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 83 | Batchsize: 120 | Steps: 4
+Epoch 83 | Training loss: 0.30889616906642914
+Epoch 83 | Training loss: 0.3265659585595131
+Epoch 83 | Validation metric: 0.2893214225769043
+Epoch 83 | Validation metric: 0.2893214225769043
+[GPU0] Epoch 84 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 84 | Batchsize: 120 | Steps: 4
+Epoch 84 | Training loss: 0.3197678476572037
+Epoch 84 | Training loss: 0.3240915983915329
+Epoch 84 | Validation metric: 0.24340201914310455
+Epoch 84 | Validation metric: 0.24340201914310455
+[GPU0] Epoch 85 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 85 | Batchsize: 120 | Steps: 4
+Epoch 85 | Training loss: 0.32728035002946854
+Epoch 85 | Training loss: 0.3129836618900299
+Epoch 85 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 85 | Validation metric: 0.2551161050796509
+Epoch 85 | Validation metric: 0.2551161050796509
+[GPU0] Epoch 86 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 86 | Batchsize: 120 | Steps: 4
+Epoch 86 | Training loss: 0.31688813865184784
+Epoch 86 | Training loss: 0.32584433257579803
+Epoch 86 | Validation metric: 0.3752407133579254
+Epoch 86 | Validation metric: 0.3752407133579254
+[GPU1] Epoch 87 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 87 | Batchsize: 120 | Steps: 4
+Epoch 87 | Training loss: 0.3254890888929367
+Epoch 87 | Training loss: 0.3043328672647476
+Epoch 87 | Validation metric: 0.16879844665527344
+Epoch 87 | Validation metric: 0.16879844665527344
+[GPU0] Epoch 88 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 88 | Batchsize: 120 | Steps: 4
+Epoch 88 | Training loss: 0.31618431955575943
+Epoch 88 | Training loss: 0.33387288451194763
+Epoch 88 | Validation metric: 0.28711071610450745
+Epoch 88 | Validation metric: 0.28711071610450745
+[GPU1] Epoch 89 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 89 | Batchsize: 120 | Steps: 4
+Epoch 89 | Training loss: 0.32015560567379
+Epoch 89 | Training loss: 0.30982957780361176
+Epoch 89 | Validation metric: 0.3542115092277527
+Epoch 89 | Validation metric: 0.3542115092277527
+[GPU0] Epoch 90 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 90 | Batchsize: 120 | Steps: 4
+Epoch 90 | Training loss: 0.31308282911777496
+Epoch 90 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 90 | Training loss: 0.32784415781497955
+Epoch 90 | Validation metric: 0.35596153140068054
+Epoch 90 | Validation metric: 0.35596153140068054
+[GPU0] Epoch 91 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 91 | Batchsize: 120 | Steps: 4
+Epoch 91 | Training loss: 0.3136781081557274
+Epoch 91 | Training loss: 0.28534984588623047
+Epoch 91 | Validation metric: 0.21855401992797852
+Epoch 91 | Validation metric: 0.21855401992797852
+[GPU0] Epoch 92 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 92 | Batchsize: 120 | Steps: 4
+Epoch 92 | Training loss: 0.309153214097023
+Epoch 92 | Training loss: 0.31261759996414185
+Epoch 92 | Validation metric: 0.30895698070526123
+Epoch 92 | Validation metric: 0.30895698070526123
+[GPU0] Epoch 93 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 93 | Batchsize: 120 | Steps: 4
+Epoch 93 | Training loss: 0.3125980570912361
+Epoch 93 | Training loss: 0.32209642231464386
+Epoch 93 | Validation metric: 0.3059024512767792
+Epoch 93 | Validation metric: 0.3059024512767792
+[GPU1] Epoch 94 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 94 | Batchsize: 120 | Steps: 4
+Epoch 94 | Training loss: 0.31376584619283676
+Epoch 94 | Training loss: 0.32299497723579407
+Epoch 94 | Validation metric: 0.31305307149887085
+Epoch 94 | Validation metric: 0.31305307149887085
+[GPU1] Epoch 95 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 95 | Batchsize: 120 | Steps: 4
+Epoch 95 | Training loss: 0.3091287314891815
+Epoch 95 | Training loss: 0.3150875195860863
+Epoch 95 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 95 | Validation metric: 0.3290203809738159
+Epoch 95 | Validation metric: 0.3290203809738159
+[GPU1] Epoch 96 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 96 | Batchsize: 120 | Steps: 4
+Epoch 96 | Training loss: 0.3098340332508087
+Epoch 96 | Training loss: 0.30245261639356613
+Epoch 96 | Validation metric: 0.23607823252677917
+Epoch 96 | Validation metric: 0.23607823252677917
+[GPU0] Epoch 97 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 97 | Batchsize: 120 | Steps: 4
+Epoch 97 | Training loss: 0.30591588467359543
+Epoch 97 | Training loss: 0.3065178692340851
+Epoch 97 | Validation metric: 0.365971177816391
+Epoch 97 | Validation metric: 0.365971177816391
+[GPU0] Epoch 98 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 98 | Batchsize: 120 | Steps: 4
+Epoch 98 | Training loss: 0.3075941503047943
+Epoch 98 | Training loss: 0.30401721596717834
+Epoch 98 | Validation metric: 0.37533074617385864
+Epoch 98 | Validation metric: 0.37533074617385864
+[GPU0] Epoch 99 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 99 | Batchsize: 120 | Steps: 4
+Epoch 99 | Training loss: 0.3040440157055855
+Epoch 99 | Training loss: 0.30024539679288864
+Epoch 99 | Validation metric: 0.24570195376873016
+Epoch 99 | Validation metric: 0.24570195376873016
+[GPU0] Epoch 100 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 100 | Batchsize: 120 | Steps: 4
+Epoch 100 | Training loss: 0.2887639179825783
+Epoch 100 | Training loss: 0.3139985725283623
+Epoch 100 | Training checkpoint saved at model/cleanSlidingWindowCorrected/checkpoint.pt
+Epoch 100 | Validation metric: 0.3463093936443329
+Epoch 100 | Validation metric: 0.3463093936443329
+[GPU0] Epoch 101 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 101 | Batchsize: 120 | Steps: 4
+Epoch 101 | Training loss: 0.3071838915348053
+Epoch 101 | Training loss: 0.2891571894288063
+Epoch 101 | Validation metric: 0.20765958726406097
+Epoch 101 | Validation metric: 0.20765958726406097
+[GPU0] Epoch 102 | Batchsize: 120 | Steps: 4
+[GPU1] Epoch 102 | Batchsize: 120 | Steps: 4
+Epoch 102 | Training loss: 0.3212384879589081
+Epoch 102 | Training loss: 0.3001197651028633
+Epoch 102 | Validation metric: 0.2464456707239151
+Epoch 102 | Validation metric: 0.2464456707239151
+[GPU1] Epoch 103 | Batchsize: 120 | Steps: 4
+[GPU0] Epoch 103 | Batchsize: 120 | Steps: 4
+Epoch 103 | Training loss: 0.3037726879119873
+Epoch 103 | Training loss: 0.2944793552160263
+Epoch 103 | Validation metric: 0.3375912010669708
+Epoch 103 | Validation metric: 0.3375912010669708
