@@ -26,6 +26,7 @@ source activate pscc
 srun  python monai-whole.py \
 --epochs 10 \
 --folder-save whole4DepthCE \
+--data-dir /tsi/data_education/data_challenge/train
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \
 # --rdzv-endpoint localhost:${port_number} \

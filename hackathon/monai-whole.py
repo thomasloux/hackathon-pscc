@@ -136,14 +136,14 @@ def save_plot(epoch_loss_values: List[float], metric_values:List[float], folder_
     plt.plot(x, y, color="green")
     plt.savefig(os.path.join(folder_save, "loss_metric.png"))
 
-def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
+def main(local_rank: int, world_size: int, folder_save: str, data_dir, max_epochs=20):
     setup(local_rank, world_size)
 
     global_rank = local_rank # Eviter de tout réécrire
 
     logging.info(f"local_rank: {local_rank}, global_rank: {global_rank}, world_size: {world_size}")
 
-    train_loader, val_loader = get_datasets("./data/train-512/preprocessed")
+    train_loader, val_loader = get_datasets(data_dir)
 
     model = UNet(
             spatial_dims=3,
@@ -257,6 +257,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--folder-save", type=str)
+    parser.add_argument("--data-dir", type=str)
 
     args = parser.parse_args()
 
@@ -268,4 +269,4 @@ if __name__ == "__main__":
         print("Creating directory")
         os.mkdir(os.path.join(directory, "model", args.folder_save))
 
-    mp.spawn(main, args=(world_size, args.folder_save, args.epochs), nprocs=world_size)
+    mp.spawn(main, args=(world_size, args.folder_save, args.epochs, args.data_dir), nprocs=world_size)
