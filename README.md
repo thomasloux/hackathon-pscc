@@ -8,6 +8,10 @@ Must be part of the kaggle competition to download the dataset.
 ```bash
     kaggle competitions download -c copy-of-pscc-data-challenge
 ```
+
+Then you can configure the path to the dataset for the code to work.
+If you are on the IPPMED cluster, the data is available at /tsi/data_education/data_challenge/ 
+
 ## Install the requirements
 
 ```bash
@@ -22,5 +26,10 @@ There are two approaches :
 - Patch based processing (monai-sliding.py)
 You can directly run the code using python or use the bash script (run.sh) to run the code on SLURM.
 
+You can use monai-sliding.py with the weigths from ./cleanSlidingWindowCorrected/checkpoint144epochs.pt
+
+## Inference
+
+You can use video/make_visualization.py to make a video of the 3D scans, real mask and predicted mask. It uses the model to predict the mask, demonstrating the inference pipeline.
 
 
