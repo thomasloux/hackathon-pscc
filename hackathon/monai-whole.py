@@ -40,7 +40,6 @@ from time import time
 import argparse
 
 from model import SegmentationModel
-from torch.distributed.elastic.multiprocessing.errors import record
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -137,7 +136,6 @@ def save_plot(epoch_loss_values: List[float], metric_values:List[float], folder_
     plt.plot(x, y, color="green")
     plt.savefig(os.path.join(folder_save, "loss_metric.png"))
 
-@record
 def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
     setup(local_rank, world_size)
 
@@ -147,7 +145,16 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
 
     train_loader, val_loader = get_datasets("./data/train-512/preprocessed")
 
-    model = SegmentationModel().to(local_rank)
+    model = UNet(
+            spatial_dims=3,
+            in_channels=1,
+            out_channels=2,
+            channels=(16, 32, 64, 128, 256),
+            strides=(2, 2, 2, 2),
+            num_res_units=2,
+            norm=Norm.BATCH,
+            dropout=0.2,
+    ).to(rank)
     model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -157,7 +164,7 @@ def main(local_rank: int, world_size: int, folder_save: str, max_epochs=20):
     )
     metric = DiceMetric(include_background=False, reduction="mean")
 
-    directory = ""
+    directory = "../"
 
     print("Starting training")
 
@@ -255,7 +262,8 @@ if __name__ == "__main__":
 
     world_size = torch.cuda.device_count()
 
-    directory = ""
+    # globale directory
+    directory = "../"
     if not os.path.exists(os.path.join(directory, "model", args.folder_save)):
         print("Creating directory")
         os.mkdir(os.path.join(directory, "model", args.folder_save))

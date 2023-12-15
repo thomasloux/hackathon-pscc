@@ -95,7 +95,7 @@ post_transform = Compose(
             argmax=True
         ),
         KeepLargestConnectedComponentd(keys="pred", connectivity=1),
-        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir="./out/withLargestConnected", resample=False),
+        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir="../out/withLargestConnected", resample=False),
     ]
 )
 
@@ -123,7 +123,7 @@ def recursive_removal_module(input_dict):
     return newdict
 
 # savefile = torch.load("model/largeRoi/checkpoint.pt")
-savefile = torch.load("model/cleanSlidingWindowCorrected/checkpoint.pt")
+savefile = torch.load("../model/cleanSlidingWindowCorrected/checkpoint.pt")
 normal_state = recursive_removal_module(savefile)
 
 model.load_state_dict(normal_state)
