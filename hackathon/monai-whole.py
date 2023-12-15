@@ -16,7 +16,9 @@ from monai.transforms import (
     Resize,
     ToTensor,
     ScaleIntensityRange,
-    AsDiscrete
+    AsDiscrete,
+    EnsureChannelFirst
+
 )
 from monai.networks.layers import Norm
 from monai.networks.nets import UNet
@@ -56,34 +58,32 @@ def get_datasets(directory):
     """
     Get the training, validation, and test datasets.
     """
-    # For preprocessed images
-    train_transforms = None
-    train_transforms_seg = Compose([
-        AsDiscrete(rounding="torchrounding")
-    ])
 
-    ct_scans_directory = os.path.join(directory, "volume")
-    segs_directory = os.path.join(directory, "seg")
-    ct_scans = os.listdir(ct_scans_directory)
-    segs = os.listdir(segs_directory)
-    ct_scans.sort()
-    segs.sort()
 
+    ct_scans = sorted(glob.glob(os.path.join(directory, "volume", "*"))) # Capture .nii or .nii.gz files
+    segs = sorted(glob.glob(os.path.join(directory, "seg", "*"))) # Capture .nii or .nii.gz files
+
+    data_dicts = [{"image": image, "label": seg} for image, seg in zip(ct_scans, segs)]
+
+    # To easily change the number of images used for training
+    # Helpful for debugging using only a few images
     num_images = len(ct_scans)
 
-    # Create a training data loader
-    dataset = ImageDataset(
-        image_files=[os.path.join(ct_scans_directory, ct_scans[i]) for i in np.arange(num_images)],
-        seg_files=[os.path.join(segs_directory, segs[i]) for i in np.arange(num_images)],
-        transform=train_transforms,
-        seg_transform=train_transforms_seg,
-        reader="NibabelReader"
+    train_files, val_files = train_test_split(data_dicts, train_size=0.8, random_state=0)
+
+    # For preprocessed images
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=["image", "label"]),
+            EnsureChannelFirstd(keys=["image", "label"]),
+            ScaleIntensityRanged(a_min=-1024, a_max=3071, b_min=0.0, b_max=1.0, clip=True),
+            SpatialCropd(roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
+            DivisiblePadd(pad_size=16, mode="constant"),
+        ]
     )
 
-    # Train test split
-    train_dataset, val_dataset = random_split(
-        dataset, [0.8, 0.2,]
-    )
+    train_dataset = Dataset(data=train_files, transform=train_transforms)
+    val_dataset = Dataset(data=val_files, transform=train_transforms)
 
     batch_size = 3
 
@@ -186,8 +186,8 @@ def main(local_rank: int, world_size: int, folder_save: str, data_dir, max_epoch
         for batch_data in train_loader:
             model.train()
             inputs, segs = (
-                batch_data[0].to(local_rank, non_blocking=True),
-                batch_data[1].to(local_rank, non_blocking=True),
+                batch_data["image"].to(local_rank, non_blocking=True),
+                batch_data["label"].to(local_rank, non_blocking=True),
             )
             optimizer.zero_grad()
 
@@ -208,8 +208,8 @@ def main(local_rank: int, world_size: int, folder_save: str, data_dir, max_epoch
             with torch.no_grad():
                 for val_data in val_loader:
                     val_inputs, val_segs = (
-                        val_data[0].to(local_rank, non_blocking=True),
-                        val_data[1].to(local_rank, non_blocking=True),
+                        val_data["image"].to(local_rank, non_blocking=True),
+                        val_data["label"].to(local_rank, non_blocking=True),
                     )
                     val_outputs = model(val_inputs)
                     val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
