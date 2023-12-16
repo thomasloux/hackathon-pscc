@@ -6,7 +6,7 @@ import pandas as pd
 
 import argparse
 
-from hackathon.post_proc import mask2rle, find_largest_containing_circle
+from toSubmissionFormat.post_proc import mask2rle, find_largest_containing_circle
 
 
 def submission_gen(predpath: list, outputpath: str):

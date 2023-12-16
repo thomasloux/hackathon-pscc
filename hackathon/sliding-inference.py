@@ -6,6 +6,7 @@ import time
 from typing import Tuple
 import glob
 from tqdm import tqdm
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -97,6 +98,8 @@ def main(data_dir: str, output_dir: str, model_path: str):
             ),
             KeepLargestConnectedComponentd(keys="pred", connectivity=1),
             SaveImaged(keys="pred", output_dir=output_dir, resample=False),
+            # May be good to use separate_folder (and not change the hackathon code)
+            # + use name formatter
         ]
     )
 
@@ -134,23 +137,31 @@ def main(data_dir: str, output_dir: str, model_path: str):
         for test_data_batch in test_loader:
             test_inputs = test_data_batch["image"].to(device)
             # roi_size = (192, 192, 64)
-            roi_size = (128, 128, 64)
+            roi_size = (160, 160, 64)
             sw_batch_size = 4
-            test_data_batch["pred"] = sliding_window_inference(test_inputs, roi_size, sw_batch_size, model, overlap=0.7)
+            test_data_batch["pred"] = sliding_window_inference(
+                test_inputs, roi_size, sw_batch_size, model, overlap=0.8, mode="gaussian")
 
             test_data_post = [post_transform(i) for i in decollate_batch(test_data_batch)]
 
     # Using the code from Hackathon Organizer to generate the submission file
     submission_gen(output_dir, os.path.join(output_dir, "submission.csv"))
 
+    # Rewrite the name properly (ex: LUNG1-001)
+    submission = pd.read_csv(os.path.join(output_dir, "submission.csv"))
+    submission["id"] = submission["id"].apply(lambda x: x[:9])
+    submission.to_csv(os.path.join(output_dir, "submission.csv"), index=False)
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/tsi/data_education/data_challenge/test/volume/")
-    parser.add_argument("--output_dir", type=str, default="../out/default")
-    parser.add_argument("--model_path", type=str)
+    parser.add_argument("--data-dir", type=str, default="/tsi/data_education/data_challenge/test/volume/")
+    parser.add_argument("--output-dir", type=str, default="../out/default")
+    parser.add_argument("--model-path", type=str)
 
-    main(data_dir, output_dir, model_path)
+    args = parser.parse_args()
+
+    main(args.data_dir, args.output_dir, args.model_path)
 
     # Mef for inference the ID needs to be of the form :
     # LUNG1-001
