@@ -6,8 +6,8 @@
 #SBATCH --gres=gpu:2         # number of GPUs reserved per node
 #SBATCH --cpus-per-task=16
 #SBATCH --time=10:00:00
-#SBATCH --output=log/pscc-training%j.out
-#SBATCH --error=log/pscc-training%j.err
+#SBATCH --output=../log/pscc-training%j.out
+#SBATCH --error=../log/pscc-training%j.err
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -27,7 +27,7 @@ srun  python monai-sliding.py \
 --total-epochs 100 \
 --batch-size 10 \
 --data-dir /tsi/data_education/data_challenge/train \
---folder-save ../model/cleanSlidingWindowCorrected2 \
+--folder-save ../model/cleanSlidingWindowCorrectedTest \
 --save-every 5 \
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \
