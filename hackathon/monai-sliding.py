@@ -25,6 +25,7 @@ from monai.transforms import (
     RandCropByPosNegLabeld,
     Compose,
     SpatialCropd,
+    KeepLargestConnectedComponent,
 )
 
 from monai.config import print_config
@@ -90,7 +91,7 @@ def get_loader(batch_size, data_dir, roi):
                 label_key="label",
                 spatial_size=roi,
                 pos=1,
-                neg=2,
+                neg=4,
                 num_samples=4,
                 image_key="image",
                 image_threshold=0,
@@ -204,8 +205,20 @@ class Trainer:
         print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
 
     def _validate(self, epoch):
-        post_pred = Compose([AsDiscrete(argmax=True, to_onehot=2)])
-        post_label = Compose([AsDiscrete(to_onehot=2)])
+
+        post_pred = Compose(
+            [
+                AsDiscrete(argmax=True),
+                KeepLargestConnectedComponent(),
+                AsDiscrete(to_onehot=2)
+                ]
+        )
+        post_label = Compose(
+            [
+                AsDiscrete(to_onehot=2)
+            ]
+        )
+
         self.val_data.sampler.set_epoch(epoch)
         self.model.eval()
         with torch.no_grad():
@@ -216,7 +229,8 @@ class Trainer:
                 )
                 sw_batch_size = 4
                 val_outputs = sliding_window_inference(
-                    inputs, self.roi, sw_batch_size, self.model, overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
+                    inputs, self.roi, sw_batch_size, self.model,
+                    overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
                 )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
@@ -304,11 +318,11 @@ def main(
     # Create optimizer
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=10, verbose=True
+        optimizer, factor=0.1, patience=30, verbose=True
     )
 
     # Define loss function
-    loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
+    loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=False)
     metric = DiceMetric(include_background=False, reduction="mean")
 
     # Train
