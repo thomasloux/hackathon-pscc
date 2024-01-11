@@ -1,7 +1,7 @@
 # General
 nibabel
 pyradiomics
-monai
+'monai[all]'
 SimpleITK
 numpy
 matplotlib
