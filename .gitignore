@@ -1,8 +1,6 @@
-data/
-PSCC_datachallenge/
-pytorch-3dunet/
 __pycache__/
 log/
 out/
 submission/
 temp/
+data/

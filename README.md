@@ -28,6 +28,10 @@ You can directly run the code using python or use the bash script (run.sh) to ru
 
 You can use monai-sliding.py with the weigths from ./cleanSlidingWindowCorrected/checkpoint144epochs.pt
 
+Info :
+- UNet : possible to fit 40 batch size with 4 samples of 160x160x64 on A40 48GB
+- SwinUNETR : possible to fit 1 batch size with 4 samples of 160x160x64 on A40 48GB
+
 ## Inference
 
 You can use video/make_visualization.py to make a video of the 3D scans, real mask and predicted mask. It uses the model to predict the mask, demonstrating the inference pipeline.
