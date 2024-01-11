@@ -29,7 +29,7 @@ from monai.transforms import (
     Compose
 )
 from monai.networks.nets import UNet
-from monai.data import Dataset, DataLoader
+from monai.data import Dataset, DataLoader, decollate_batch
 from monai.config import print_config
 from monai.metrics import DiceMetric
 
@@ -39,6 +39,7 @@ import torch.nn as nn
 
 import nibabel as nib
 import numpy as np
+from multiprocessing import Pool
 
 # Visualizations
 import matplotlib.pyplot as plt
@@ -68,6 +69,8 @@ def get_loader(data_dir):
         {"image": image_name, "label": seg_name}
         for image_name, seg_name in zip(images, segs)
     ]
+
+    data_dicts = data_dicts
 
     val_transform = transforms.Compose(
         [
@@ -126,7 +129,38 @@ def show_irm(data: np.ndarray, inputs, val_outputs, name=None):
         anim.save(name, fps=10)
     plt.close()
 
+def make_prediction_dataset(dataIrm: DataLoader, roi, device):
+    """
+    Make prediction on a single CT scan.
+    """
+
+    post_pred = Compose([AsDiscrete(argmax=True), KeepLargestConnectedComponent()])
+
+    predicted_masks = []
+
+    for batch in dataIrm:
+        inputs, labels = (
+            batch["image"].to(device),
+            batch["label"].to(device),
+        )
+        sw_batch_size = 4
+        val_outputs = sliding_window_inference(
+            inputs, roi, sw_batch_size, model, overlap=0.8, mode="gaussian"
+        )
+
+        val_outputs_post = [post_pred(val_output) for val_output in decollate_batch(val_outputs)]
+        predicted_masks.append(val_outputs_post)
+
+
+    return predicted_masks
+
 def make_prediction_get_video(dataIrm, roi, device, name=None):
+    """
+    Make prediction on a single CT scan and save the video.
+
+    Note: It is not appropriate for fast inference on a dataset. If you
+    use a model on cuda, the bottleneck is the generation of the video.
+    """
 
     post_pred = Compose([AsDiscrete(argmax=True), KeepLargestConnectedComponent()])
 
@@ -143,33 +177,54 @@ def make_prediction_get_video(dataIrm, roi, device, name=None):
 
     show_irm(inputs.detach().cpu().numpy()[0, 0], labels.cpu().detach().numpy()[0][0], val_outputs_post[0], name=name)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-### Load from checkpoint (created by DistributedDataParallel wrapper)
-model = UNet(
-        spatial_dims=3,
-        in_channels=1,
-        out_channels=2,
-        channels=(16, 32, 64, 128, 256),
-        strides=(2, 2, 2, 2),
-        num_res_units=2,
-        norm=Norm.BATCH,
-).to(device)
 
-state = torch.load('../model/cleanSlidingWindowCorrected/checkpoint144epochs.pt', map_location=device)
-normal_state = recursive_removal_module(state)
-# load
-model.load_state_dict(normal_state)
 
-###
+if __name__ == "__main__":
 
-# loader = get_loader("/tsi/data_education/data_challenge/train")
-loader = get_loader('../data/examples')
-dataIrm = iter(loader)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-roi = (192, 192, 80)
+    ### Load from checkpoint (created by DistributedDataParallel wrapper)
+    model = UNet(
+            spatial_dims=3,
+            in_channels=1,
+            out_channels=2,
+            channels=(16, 32, 64, 128, 256),
+            strides=(2, 2, 2, 2),
+            num_res_units=2,
+            norm=Norm.BATCH,
+    ).to(device)
 
-with torch.no_grad():
-    for i, ctScan in tqdm(enumerate(dataIrm)):
-        make_prediction_get_video(ctScan, roi, device, name=f"video-example{i}.gif")
-        
+    # state = torch.load('../model/cleanSlidingWindowCorrected/checkpoint144epochs.pt', map_location=device)
+    # state = torch.load('../model/cleanSlidingWindowCorrected2/checkpoint.pt', map_location=device)
+    state = torch.load('../model/cleanSlidingWindowCorrected2/checkpoint.pt')
+    normal_state = recursive_removal_module(state)
+    # load
+    model.load_state_dict(normal_state)
+
+    ###
+    loader = get_loader("/tsi/data_education/data_challenge/train")
+
+    # loader = get_loader('../data/examples')
+
+    roi = (192, 192, 80)
+
+    with torch.no_grad():
+        args_list = make_prediction_dataset(loader, roi, device)
+  
+    args_list = [(
+        img["image"].squeeze(0).squeeze(0).cpu().detach().numpy(),
+        img["label"].squeeze(0).squeeze(0).cpu().detach().numpy(),
+        arg[0].cpu().detach().numpy(),
+        f"video-{i}") 
+        for i, (arg, img) in enumerate(zip(args_list, iter(loader)))]
+
+    print(args_list[0][0].shape, args_list[0][1].shape, args_list[0][2][0].shape)
+
+    pool = Pool(6)
+
+    with torch.no_grad():
+        pool.starmap(show_irm, args_list)
+
+    pool.close()
+    pool.join()
