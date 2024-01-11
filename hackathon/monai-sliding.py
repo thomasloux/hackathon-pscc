@@ -26,6 +26,7 @@ from monai.transforms import (
     Compose,
     SpatialCropd,
     KeepLargestConnectedComponent,
+    Rand3DElasticd
 )
 
 from monai.config import print_config
@@ -86,23 +87,35 @@ def get_loader(batch_size, data_dir, roi):
             Orientationd(keys=["image", "label"], axcodes="RAS"),
             # Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
             # Probably not needed 
+            ScaleIntensityRanged(
+            keys=["image"],
+            a_min=-1024,
+            a_max=3071,
+            b_min=0.0,
+            b_max=1.0,
+            clip=True),
             RandCropByPosNegLabeld(
                 keys=["image", "label"],
                 label_key="label",
                 spatial_size=roi,
                 pos=1,
-                neg=4,
+                neg=3,
                 num_samples=4,
                 image_key="image",
                 image_threshold=0,
             ),
-            ScaleIntensityRanged(
-                keys=["image"],
-                a_min=-1024,
-                a_max=3071,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True),
+            # Rand3DElasticd(
+            #     keys=["image", "label"],
+            #     sigma_range=(0, 0.05),
+            #     magnitude_range=(0, 5),
+            #     prob=0.2,
+            #     rotate_range=(0, 0, np.pi/15),
+            #     shear_range=(0, 0, np.pi/15),
+            #     translate_range=(0, 0, 3),
+            #     spatial_size=roi,
+            #     mode=("bilinear", "nearest"),
+            #     padding_mode="zeros"
+            # )
         ]
     )
 
@@ -122,8 +135,8 @@ def get_loader(batch_size, data_dir, roi):
         ]
     )
 
-    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.4, num_workers=8)
-    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.4, num_workers=8)
+    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=1, num_workers=5)
+    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=1, num_workers=5)
 
     train_loader = data.DataLoader(
         train_ds,
@@ -150,6 +163,7 @@ class Trainer:
         val_data: DataLoader,
         optimizer: torch.optim.Optimizer,
         lr_scheduler: torch.optim.lr_scheduler,
+        scaler: torch.cuda.amp.GradScaler,
         loss_function: torch.nn.Module,
         metric: torch.nn.Module,
         gpu_id: int,
@@ -164,6 +178,7 @@ class Trainer:
         self.val_data = val_data
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
+        self.scaler = scaler
         self.loss_function = loss_function
         self.metric = metric
         self.save_every = save_every
@@ -177,10 +192,12 @@ class Trainer:
 
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
-        output = self.model(source)
-        loss = self.loss_function(output, targets)
-        loss.backward()
-        self.optimizer.step()
+        with torch.cuda.amp.autocast():
+            output = self.model(source)
+            loss = self.loss_function(output, targets)
+        self.scaler.scale(loss).backward()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
         return loss.item()
 
     def _run_epoch(self, epoch):
@@ -228,10 +245,11 @@ class Trainer:
                     batch_data["label"].to(self.gpu_id),
                 )
                 sw_batch_size = 4
-                val_outputs = sliding_window_inference(
-                    inputs, self.roi, sw_batch_size, self.model,
-                    overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
-                )
+                with torch.cuda.amp.autocast():
+                    val_outputs = sliding_window_inference(
+                        inputs, self.roi, sw_batch_size, self.model,
+                        overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
+                    )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
                 
@@ -242,9 +260,8 @@ class Trainer:
             print(f"Epoch {epoch} | Validation metric: {value_metric}")
             self.mean_metric_history.append(value_metric)
             self.metric.reset()
+            self.model.train()
             return value_metric
-
-        self.model.train()
 
     def _plot(self):
         """
@@ -297,16 +314,27 @@ def main(
     train_loader, val_loader = get_loader(batch_size, data_dir, roi)
 
     # Create model
-    model = UNet(
-            spatial_dims=3,
-            in_channels=1,
-            out_channels=2,
-            channels=(16, 32, 64, 128, 256),
-            strides=(2, 2, 2, 2),
-            num_res_units=2,
-            norm=Norm.BATCH,
-            dropout=0.2,
+    # model = UNet(
+    #         spatial_dims=3,
+    #         in_channels=1,
+    #         out_channels=2,
+    #         channels=(16, 32, 64, 128, 256),
+    #         strides=(2, 2, 2, 2),
+    #         num_res_units=2,
+    #         norm=Norm.BATCH,
+    #         dropout=0.2,
+    # ).to(rank)
+    model = SwinUNETR(
+        img_size=roi,
+        in_channels=1,
+        out_channels=2,
+        feature_size=48,
+        depths=(2, 2, 2, 2),
+        num_heads=(3, 6, 12, 24),
+        drop_rate=0.2,
+        use_v2=True,
     ).to(rank)
+
     model = DDP(model, device_ids=[rank])
 
     # Load checkpoint
@@ -318,11 +346,12 @@ def main(
     # Create optimizer
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=30, verbose=True
+        optimizer, factor=0.1, patience=20, verbose=True
     )
+    scaler = torch.cuda.amp.GradScaler()
 
     # Define loss function
-    loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=False)
+    loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=True)
     metric = DiceMetric(include_background=False, reduction="mean")
 
     # Train
@@ -332,13 +361,14 @@ def main(
         val_loader,
         optimizer,
         lr_scheduler,
+        scaler,
         loss_function,
         metric,
         rank,
         save_every,
         folder_save,
         roi,
-        val_interval=1
+        val_interval=2
     )
     trainer.train(total_epochs)
 
