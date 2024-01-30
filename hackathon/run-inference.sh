@@ -23,15 +23,10 @@ echo ${head_node}.enst.fr:${port_number}
 source ~/.bashrc
 source activate pscc
 
-srun  python monai-sliding.py \
---total-epochs 400 \
---batch-size 1 \
---data-dir /tsi/data_education/data_challenge/train \
---folder-save ../model/swinUnetrBigger2 \
---save-every 5 \
-# --rdzv-id $RANDOM \
-# --rdzv-backend c10d \
-# --rdzv-endpoint localhost:${port_number} \
+srun  python sliding-inference.py \
+--output-dir ../out/swinunetrAllGreaterModel \
+--model-path ../model/swinUnetrBigger2/checkpoint.pt \
+--data-dir /tsi/data_education/data_challenge/test/volume/
 
 
 echo "Done"

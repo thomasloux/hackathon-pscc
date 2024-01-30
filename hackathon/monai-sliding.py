@@ -26,7 +26,10 @@ from monai.transforms import (
     Compose,
     SpatialCropd,
     KeepLargestConnectedComponent,
-    Rand3DElasticd
+    Rand3DElasticd,
+    RandFlipd,
+    RandScaleIntensityd,
+    RandShiftIntensityd,
 )
 
 from monai.config import print_config
@@ -73,13 +76,13 @@ def get_loader(batch_size, data_dir, roi):
     ]
     # data_dicts = data_dicts[:20] # Limit data to test the pipeline
 
-    train_files, val_files = train_test_split(data_dicts, train_size=0.8, random_state=0)
+    train_files, val_files = train_test_split(data_dicts, train_size=0.99, random_state=0)
 
     train_transform = transforms.Compose(
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -94,13 +97,28 @@ def get_loader(batch_size, data_dir, roi):
             b_min=0.0,
             b_max=1.0,
             clip=True),
+            RandShiftIntensityd(
+                keys=["image"],
+                offsets=0.05,
+                prob=0.2,
+            ),
+            RandScaleIntensityd(
+                keys=["image"],
+                factors=0.05,
+                prob=0.2,
+            ),
+            RandFlipd(
+                keys=["image", "label"],
+                prob=0.3,
+                spatial_axis=0,
+            ),
             RandCropByPosNegLabeld(
                 keys=["image", "label"],
                 label_key="label",
                 spatial_size=roi,
                 pos=1,
                 neg=3,
-                num_samples=4,
+                num_samples=1,
                 image_key="image",
                 image_threshold=0,
             ),
@@ -123,7 +141,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -135,8 +153,8 @@ def get_loader(batch_size, data_dir, roi):
         ]
     )
 
-    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=1, num_workers=5)
-    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=1, num_workers=5)
+    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.5, num_workers=4)
+    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.5, num_workers=4)
 
     train_loader = data.DataLoader(
         train_ds,
@@ -215,9 +233,9 @@ class Trainer:
         self.mean_loss_history.append(total_loss)
         print(f"Epoch {epoch} | Training loss: {total_loss}")
 
-    def _save_checkpoint(self, epoch):
+    def _save_checkpoint(self, epoch, name="checkpoint.pt"):
         ckp = self.model.module.state_dict()
-        PATH = os.path.join(self.folder_save, "checkpoint.pt")
+        PATH = os.path.join(self.folder_save, name)
         torch.save(ckp, PATH)
         print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
 
@@ -328,10 +346,10 @@ def main(
         img_size=roi,
         in_channels=1,
         out_channels=2,
-        feature_size=48,
-        depths=(2, 2, 2, 2),
-        num_heads=(3, 6, 12, 24),
-        drop_rate=0.2,
+        feature_size=96,
+        depths=(2, 2, 2, 2, 2),
+        num_heads=(6, 12, 24, 48, 96),
+        drop_rate=0.0,
         use_v2=True,
     ).to(rank)
 
@@ -344,9 +362,9 @@ def main(
         print(f"Checkpoint loaded from {PATH}")
 
     # Create optimizer
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-6)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=20, verbose=True
+        optimizer, factor=0.1, patience=100, verbose=True
     )
     scaler = torch.cuda.amp.GradScaler()
 
@@ -368,7 +386,7 @@ def main(
         save_every,
         folder_save,
         roi,
-        val_interval=2
+        val_interval=5
     )
     trainer.train(total_epochs)
 
