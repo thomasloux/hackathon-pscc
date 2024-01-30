@@ -1,0 +1,12 @@
+# General
+nibabel
+'monai[all]'
+numpy
+matplotlib
+seaborn
+torch
+scikit-learn
+tqdm
+
+# To make submission
+opencv-python
