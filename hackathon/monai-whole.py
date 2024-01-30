@@ -79,6 +79,7 @@ def get_datasets(directory):
             ScaleIntensityRanged(a_min=-1024, a_max=3071, b_min=0.0, b_max=1.0, clip=True),
             SpatialCropd(roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
             DivisiblePadd(pad_size=16, mode="constant"),
+
         ]
     )
 
@@ -145,22 +146,32 @@ def main(local_rank: int, world_size: int, folder_save: str, data_dir, max_epoch
 
     train_loader, val_loader = get_datasets(data_dir)
 
-    model = UNet(
-            spatial_dims=3,
-            in_channels=1,
-            out_channels=2,
-            channels=(16, 32, 64, 128, 256),
-            strides=(2, 2, 2, 2),
-            num_res_units=2,
-            norm=Norm.BATCH,
-            dropout=0.2,
+    # model = UNet(
+    #         spatial_dims=3,
+    #         in_channels=1,
+    #         out_channels=2,
+    #         channels=(16, 32, 64, 128, 256),
+    #         strides=(2, 2, 2, 2),
+    #         num_res_units=2,
+    #         norm=Norm.BATCH,
+    #         dropout=0.2,
+    # ).to(rank)
+    model = SwinUNETR(
+        img_size=roi,
+        in_channels=1,
+        out_channels=2,
+        feature_size=48,
+        depths=(2, 2, 2, 2),
+        num_heads=(3, 6, 12, 24),
+        drop_rate=0.3,
+        use_v2=True,
     ).to(rank)
     model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=False)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.1, patience=10, verbose=True
+        optimizer, mode="min", factor=0.1, patience=100, verbose=True
     )
     metric = DiceMetric(include_background=False, reduction="mean")
 

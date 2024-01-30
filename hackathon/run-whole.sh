@@ -6,8 +6,8 @@
 #SBATCH --gres=gpu:2         # number of GPUs reserved per node
 #SBATCH --cpus-per-task=16
 #SBATCH --time=10:00:00
-#SBATCH --output=log/pscc-training%j.out
-#SBATCH --error=log/pscc-training%j.err
+#SBATCH --output=../log/pscc-training%j.out
+#SBATCH --error=../log/pscc-training%j.err
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -23,10 +23,12 @@ echo ${head_node}.enst.fr:${port_number}
 source ~/.bashrc
 source activate pscc
 
-srun  python monai-whole.py \
---epochs 10 \
---folder-save whole4DepthCE \
---data-dir /tsi/data_education/data_challenge/train
+srun  python monai-whole-unetr.py \
+--total-epochs 100 \
+--batch-size 1 \
+--data-dir /tsi/data_education/data_challenge/train \
+--folder-save ../model/swinUnetrWhole \
+--save-every 1 \
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \
 # --rdzv-endpoint localhost:${port_number} \
