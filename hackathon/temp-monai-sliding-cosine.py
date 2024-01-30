@@ -26,10 +26,7 @@ from monai.transforms import (
     Compose,
     SpatialCropd,
     KeepLargestConnectedComponent,
-    Rand3DElasticd,
-    RandFlipd,
-    RandScaleIntensityd,
-    RandShiftIntensityd,
+    Rand3DElasticd
 )
 
 from monai.config import print_config
@@ -49,6 +46,7 @@ import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
+from torch.optim.swa_utils import AveragedModel
 
 from sklearn.model_selection import train_test_split
 
@@ -82,7 +80,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -97,31 +95,17 @@ def get_loader(batch_size, data_dir, roi):
             b_min=0.0,
             b_max=1.0,
             clip=True),
-            RandShiftIntensityd(
-                keys=["image"],
-                offsets=0.05,
-                prob=0.2,
-            ),
-            RandScaleIntensityd(
-                keys=["image"],
-                factors=0.05,
-                prob=0.2,
-            ),
-            RandFlipd(
-                keys=["image", "label"],
-                prob=0.3,
-                spatial_axis=0,
-            ),
             RandCropByPosNegLabeld(
                 keys=["image", "label"],
                 label_key="label",
                 spatial_size=roi,
                 pos=1,
                 neg=3,
-                num_samples=1,
+                num_samples=3,
                 image_key="image",
                 image_threshold=0,
             ),
+            
             # Rand3DElasticd(
             #     keys=["image", "label"],
             #     sigma_range=(0, 0.05),
@@ -141,7 +125,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -153,8 +137,8 @@ def get_loader(batch_size, data_dir, roi):
         ]
     )
 
-    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.5, num_workers=4)
-    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.5, num_workers=4)
+    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.5, num_workers=5)
+    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.5, num_workers=5)
 
     train_loader = data.DataLoader(
         train_ds,
@@ -189,6 +173,7 @@ class Trainer:
         folder_save: str,
         roi: Tuple[int, int, int],
         val_interval: int = 2,
+        ema_model: torch.nn.Module = None,
     ) -> None:
         self.gpu_id = gpu_id
         self.model = model.to(gpu_id)
@@ -204,9 +189,9 @@ class Trainer:
         self.roi = roi
         self.model = DDP(model, device_ids=[gpu_id])
         self.val_interval = val_interval
-
         self.mean_loss_history = []
         self.mean_metric_history = []
+        self.ema_model = ema_model
 
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
@@ -216,6 +201,7 @@ class Trainer:
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
+        self.ema_model.update_parameters(self.model)
         return loss.item()
 
     def _run_epoch(self, epoch):
@@ -304,7 +290,7 @@ class Trainer:
         for epoch in range(max_epochs):
             self._run_epoch(epoch)
             if self.gpu_id == 0 and epoch % self.save_every == 0:
-                self._save_checkpoint(epoch)
+                self._save_checkpoint(epoch, name=f"checkpoint_{epoch}.pt")
             
             if epoch % self.val_interval == 0:
                 value_metric = self._validate(epoch)
@@ -313,6 +299,8 @@ class Trainer:
         
         if self.gpu_id == 0:
             self._plot()
+        torch.optim.swa_utils.update_bn(self.train_data, self.model, device=self.gpu_id)
+        self._save_checkpoint(epoch, name="checkpoint-ema.pt")  
 
 def main(
         rank: int,
@@ -346,10 +334,10 @@ def main(
         img_size=roi,
         in_channels=1,
         out_channels=2,
-        feature_size=96,
-        depths=(2, 2, 2, 2, 2),
-        num_heads=(6, 12, 24, 48, 96),
-        drop_rate=0.0,
+        feature_size=48,
+        depths=(2, 2, 2, 2),
+        num_heads=(3, 6, 12, 24),
+        drop_rate=0.3,
         use_v2=True,
     ).to(rank)
 
@@ -362,11 +350,14 @@ def main(
         print(f"Checkpoint loaded from {PATH}")
 
     # Create optimizer
-    optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-6)
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=100, verbose=True
-    )
+    # optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+    #     optimizer, factor=0.1, patience=100, verbose=True
+    # )
+    optimizer = torch.optime.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01, betas=(0.9, 0.95))
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=20, eta_min=0)
     scaler = torch.cuda.amp.GradScaler()
+    averaged_model = AveragedModel(model, multi_avg_fn=torch.optim.swa_utils.get_ema_multi_avg_fn(0.999))
 
     # Define loss function
     loss_function = DiceCELoss(to_onehot_y=True, softmax=True, include_background=True)
@@ -386,7 +377,8 @@ def main(
         save_every,
         folder_save,
         roi,
-        val_interval=5
+        val_interval=5,
+        ema_model=averaged_model
     )
     trainer.train(total_epochs)
 

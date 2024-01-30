@@ -1,20 +1,12 @@
 # General
 nibabel
-pyradiomics
 'monai[all]'
-SimpleITK
 numpy
 matplotlib
 seaborn
 torch
-ray
 scikit-learn
-kaggle
 tqdm
 
 # To make submission
 opencv-python
-
-# Jupyter
-ipykernel
-ipywidgets

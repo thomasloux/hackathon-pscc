@@ -24,10 +24,10 @@ source ~/.bashrc
 source activate pscc
 
 srun  python monai-sliding.py \
---total-epochs 400 \
+--total-epochs 101 \
 --batch-size 1 \
 --data-dir /tsi/data_education/data_challenge/train \
---folder-save ../model/swinUnetrBigger2 \
+--folder-save ../model/swinUnetrCosineAverage \
 --save-every 5 \
 # --rdzv-id $RANDOM \
 # --rdzv-backend c10d \

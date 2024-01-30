@@ -262,7 +262,7 @@ class Trainer:
                     batch_data["image"].to(self.gpu_id),
                     batch_data["label"].to(self.gpu_id),
                 )
-                sw_batch_size = 4
+                sw_batch_size = 12
                 with torch.cuda.amp.autocast():
                     val_outputs = sliding_window_inference(
                         inputs, self.roi, sw_batch_size, self.model,
@@ -308,6 +308,7 @@ class Trainer:
             
             if epoch % self.val_interval == 0:
                 value_metric = self._validate(epoch)
+                self._plot()
 
             self.lr_scheduler.step(value_metric)
         
@@ -332,16 +333,6 @@ def main(
     train_loader, val_loader = get_loader(batch_size, data_dir, roi)
 
     # Create model
-    # model = UNet(
-    #         spatial_dims=3,
-    #         in_channels=1,
-    #         out_channels=2,
-    #         channels=(16, 32, 64, 128, 256),
-    #         strides=(2, 2, 2, 2),
-    #         num_res_units=2,
-    #         norm=Norm.BATCH,
-    #         dropout=0.2,
-    # ).to(rank)
     model = SwinUNETR(
         img_size=roi,
         in_channels=1,
@@ -362,10 +353,8 @@ def main(
         print(f"Checkpoint loaded from {PATH}")
 
     # Create optimizer
-    optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-6)
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=100, verbose=True
-    )
+    optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-6)
+    lr_scheduler = None
     scaler = torch.cuda.amp.GradScaler()
 
     # Define loss function

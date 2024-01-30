@@ -27,9 +27,10 @@ from monai.transforms import (
     SpatialCropd,
     KeepLargestConnectedComponent,
     Rand3DElasticd,
-    RandFlipd,
-    RandScaleIntensityd,
+    DivisiblePadd,
     RandShiftIntensityd,
+    RandFlipd,
+    CastToTyped
 )
 
 from monai.config import print_config
@@ -82,14 +83,15 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
-            transforms.CropForegroundd(
-                keys=["image", "label"],
-                source_key="image"
-            ),
+            SpatialCropd(keys=["image", "label"], roi_start=(32, 29, 0), roi_end=(512-32, 512-99, 128)),
+            # transforms.CropForegroundd(
+            #     keys=["image", "label"],
+            #     source_key="image"
+            # ),
             Orientationd(keys=["image", "label"], axcodes="RAS"),
             # Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
             # Probably not needed 
+            DivisiblePadd(k=16, mode="constant", keys=["image", "label"]),
             ScaleIntensityRanged(
             keys=["image"],
             a_min=-1024,
@@ -97,14 +99,10 @@ def get_loader(batch_size, data_dir, roi):
             b_min=0.0,
             b_max=1.0,
             clip=True),
+            CastToTyped(keys=["image", "label"], dtype=[torch.float16, torch.int16]),
             RandShiftIntensityd(
                 keys=["image"],
                 offsets=0.05,
-                prob=0.2,
-            ),
-            RandScaleIntensityd(
-                keys=["image"],
-                factors=0.05,
                 prob=0.2,
             ),
             RandFlipd(
@@ -112,28 +110,6 @@ def get_loader(batch_size, data_dir, roi):
                 prob=0.3,
                 spatial_axis=0,
             ),
-            RandCropByPosNegLabeld(
-                keys=["image", "label"],
-                label_key="label",
-                spatial_size=roi,
-                pos=1,
-                neg=3,
-                num_samples=1,
-                image_key="image",
-                image_threshold=0,
-            ),
-            # Rand3DElasticd(
-            #     keys=["image", "label"],
-            #     sigma_range=(0, 0.05),
-            #     magnitude_range=(0, 5),
-            #     prob=0.2,
-            #     rotate_range=(0, 0, np.pi/15),
-            #     shear_range=(0, 0, np.pi/15),
-            #     translate_range=(0, 0, 3),
-            #     spatial_size=roi,
-            #     mode=("bilinear", "nearest"),
-            #     padding_mode="zeros"
-            # )
         ]
     )
 
@@ -141,20 +117,22 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
-            transforms.CropForegroundd(
-                keys=["image", "label"],
-                source_key="image"
-            ),
+            SpatialCropd(keys=["image", "label"], roi_start=(32, 29, 0), roi_end=(512-32, 512-99, 128)),
+            # transforms.CropForegroundd(
+            #     keys=["image", "label"],
+            #     source_key="image",
+            # ),
             Orientationd(keys=["image", "label"], axcodes="RAS"),
             # Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
             # Probably not needed 
             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=3071, b_min=0.0, b_max=1.0, clip=True),
+            CastToTyped(keys=["image", "label"], dtype=[torch.float16, torch.int16]),
+            # DivisiblePadd(k=16, mode="constant", keys=["image", "label"]),
         ]
     )
 
-    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.5, num_workers=4)
-    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.5, num_workers=4)
+    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.2, num_workers=4)
+    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.2, num_workers=4)
 
     train_loader = data.DataLoader(
         train_ds,
@@ -262,12 +240,8 @@ class Trainer:
                     batch_data["image"].to(self.gpu_id),
                     batch_data["label"].to(self.gpu_id),
                 )
-                sw_batch_size = 4
                 with torch.cuda.amp.autocast():
-                    val_outputs = sliding_window_inference(
-                        inputs, self.roi, sw_batch_size, self.model,
-                        overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
-                    )
+                    val_outputs = self.model(inputs)
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
                 
@@ -305,6 +279,10 @@ class Trainer:
             self._run_epoch(epoch)
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                 self._save_checkpoint(epoch)
+
+                ## to be removed 
+                if epoch == 10:
+                    self._save_checkpoint(epoch, name="checkpoint_10.pt")
             
             if epoch % self.val_interval == 0:
                 value_metric = self._validate(epoch)
@@ -326,7 +304,7 @@ def main(
     # Set up distributed training
     ddp_setup(rank, world_size)
 
-    roi = (160, 160, 64)
+    roi = (512-64, 512-128, 128) # Corresponds to the cropped volume size
 
     # Load data
     train_loader, val_loader = get_loader(batch_size, data_dir, roi)
@@ -346,11 +324,12 @@ def main(
         img_size=roi,
         in_channels=1,
         out_channels=2,
-        feature_size=96,
-        depths=(2, 2, 2, 2, 2),
-        num_heads=(6, 12, 24, 48, 96),
+        feature_size=24,
+        depths=(2, 2, 2, 2),
+        num_heads=(2, 4, 8, 16),
         drop_rate=0.0,
         use_v2=True,
+        use_checkpoint=True,
     ).to(rank)
 
     model = DDP(model, device_ids=[rank])
@@ -362,7 +341,7 @@ def main(
         print(f"Checkpoint loaded from {PATH}")
 
     # Create optimizer
-    optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-6)
+    optimizer = optim.Adam(model.parameters(), lr=3e-4)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, factor=0.1, patience=100, verbose=True
     )
