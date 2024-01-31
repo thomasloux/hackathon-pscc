@@ -1,6 +1,6 @@
 # General
 nibabel
-'monai[all]'
+monai[all]
 numpy
 matplotlib
 seaborn

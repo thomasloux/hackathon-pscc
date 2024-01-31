@@ -22,9 +22,9 @@ export OMP_NUM_THREADS=4 # Arbitrary
 # source activate pscc
 
 srun  python main-test.py \
---output-dir ../out/swinunetrAllGreaterModel \
---model-path ../model/swinUnetrBigger2/checkpoint.pt \
---data-dir /tsi/data_education/data_challenge/test/volume/
-
+--output-dir /out/swinUnetr \
+--model-path /model/swinUnetr/checkpoint.pt \
+--data-dir-test /tsi/data_education/data_challenge/test/volume/ \
+--data-dir-train /tsi/data_education/data_challenge/train \
 
 echo "Done"
