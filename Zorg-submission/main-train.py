@@ -74,7 +74,6 @@ def get_loader(batch_size, data_dir, roi):
         {"image": image_name, "label": seg_name}
         for image_name, seg_name in zip(images, segs)
     ]
-    # data_dicts = data_dicts[:20] # Limit data to test the pipeline
 
     train_files, val_files = train_test_split(data_dicts, train_size=0.99, random_state=0)
 
@@ -82,7 +81,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(70, 70, 0), roi_end=(512-60, 512-110, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -141,7 +140,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(70, 70, 0), roi_end=(512-60, 512-110, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -180,7 +179,6 @@ class Trainer:
         train_data: DataLoader,
         val_data: DataLoader,
         optimizer: torch.optim.Optimizer,
-        lr_scheduler: torch.optim.lr_scheduler,
         scaler: torch.cuda.amp.GradScaler,
         loss_function: torch.nn.Module,
         metric: torch.nn.Module,
@@ -195,7 +193,6 @@ class Trainer:
         self.train_data = train_data
         self.val_data = val_data
         self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
         self.scaler = scaler
         self.loss_function = loss_function
         self.metric = metric
@@ -266,7 +263,7 @@ class Trainer:
                 with torch.cuda.amp.autocast():
                     val_outputs = sliding_window_inference(
                         inputs, self.roi, sw_batch_size, self.model,
-                        overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
+                        overlap=0.5, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
                     )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]
@@ -310,7 +307,6 @@ class Trainer:
                 value_metric = self._validate(epoch)
                 self._plot()
 
-            self.lr_scheduler.step(value_metric)
         
         if self.gpu_id == 0:
             self._plot()
@@ -337,10 +333,10 @@ def main(
         img_size=roi,
         in_channels=1,
         out_channels=2,
-        feature_size=96,
-        depths=(2, 2, 2, 2, 2),
-        num_heads=(6, 12, 24, 48, 96),
-        drop_rate=0.0,
+        feature_size=48,
+        depths=(2, 2, 2, 2),
+        num_heads=(3, 6, 12, 24),
+        drop_rate=0.2,
         use_v2=True,
     ).to(rank)
 
@@ -354,7 +350,6 @@ def main(
 
     # Create optimizer
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-6)
-    lr_scheduler = None
     scaler = torch.cuda.amp.GradScaler()
 
     # Define loss function
@@ -367,7 +362,6 @@ def main(
         train_loader,
         val_loader,
         optimizer,
-        lr_scheduler,
         scaler,
         loss_function,
         metric,
@@ -399,3 +393,4 @@ if __name__ == "__main__":
     world_size = torch.cuda.device_count()
     arguments = (world_size, args.save_every, args.total_epochs, args.batch_size, args.data_dir, args.folder_save)
     mp.spawn(main, args=arguments, nprocs=world_size)
+    # main(0, 1, args.save_every, args.total_epochs, args.batch_size, args.data_dir, args.folder_save)

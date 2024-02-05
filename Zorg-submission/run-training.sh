@@ -2,12 +2,12 @@
 #SBATCH --partition=IPPMED-A40 # partition (queue)
 #SBATCH --job-name=pscc-training-loux
 #SBATCH --nodes=1            # total number of nodes
-#SBATCH --ntasks-per-node=2  # number of tasks per node
-#SBATCH --gres=gpu:2         # number of GPUs reserved per node
+#SBATCH --ntasks-per-node=1  # number of tasks per node
+#SBATCH --gres=gpu:1         # number of GPUs reserved per node
 #SBATCH --cpus-per-task=16
 #SBATCH --time=10:00:00
-#SBATCH --output=../log/pscc-training%j.out
-#SBATCH --error=../log/pscc-training%j.err
+#SBATCH --output=log/pscc-training%j.out
+#SBATCH --error=log/pscc-training%j.err
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -24,9 +24,9 @@ export OMP_NUM_THREADS=4 # Arbitrary
 
 srun  python main-train.py \
 --total-epochs 400 \
---batch-size 1 \
+--batch-size 4 \
 --data-dir /tsi/data_education/data_challenge/train \
---folder-save ../model/swinUnetrBigger2 \
+--folder-save /model/swinUnetr \
 --save-every 5 \
 
 echo "Done"
