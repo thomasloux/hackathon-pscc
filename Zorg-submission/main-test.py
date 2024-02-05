@@ -29,6 +29,7 @@ from monai.transforms import (
     Invertd,
     KeepLargestConnectedComponentd,
     SaveImaged,
+    ToNumpyd,
 )
 
 from monai.config import print_config
@@ -59,6 +60,7 @@ import numpy as np
 import os
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_dilation
+
 def get_data_seg(id):
     # get rle from ith row of df
     rle = df.iloc[id-1,1]
@@ -85,10 +87,10 @@ def get_data_vol(id):
 
 class dilationErosionPostProcessd(transforms.MapTransform):
     """
-
+    Try to add or remove a layer of pixels from the mask that followed closely the intensity of the image in the same region
     """
     def __init__(self, keys: List[str]):
-        super().__init__()
+        super().__init__(keys)
         self.keys = keys
         # Assume keys = ["pred", "image"] or equivalent keys
 
@@ -97,11 +99,11 @@ class dilationErosionPostProcessd(transforms.MapTransform):
         return self.postProcess(d)
 
     def postProcess(self, data_dictionary):
-        data = data[self.keys[0]]
+        data = data_dictionary[self.keys[0]].squeeze(0)
         dilated_data = binary_dilation(data).astype(data.dtype)
         eroded_data= binary_erosion(data).astype(data.dtype)
-        #normalize data_vol between 0 and 1
-        data_vol = data[self.keys[1]].squeeze(0).numpy()
+
+        data_vol = data_dictionary[self.keys[1]].squeeze(0)
         data_vol = (data_vol - np.min(data_vol))/(np.max(data_vol)-np.min(data_vol))
 
         i_mean= np.mean(data_vol[data==1].flatten())
@@ -113,29 +115,15 @@ class dilationErosionPostProcessd(transforms.MapTransform):
 
         # if new data is empty, make the ball with radius 10 and center 50, 50, 50  as 1
         if np.sum(new_data)==0:
+            print(new_data.shape)
             new_data[250,250,50]=1
             new_data= binary_dilation(new_data, iterations=10).astype(new_data.dtype)
-        return {self.keys[0]: torch.from_numpy(new_data).unsqueeze(0), self.keys[1]: data[self.keys[1]]}
-
-class ifEmptyPostProcessd(transforms.MapTransform):
-    def __init__(self, keys: List[str]):
-        super().__init__(keys)
-
-    def __call__(self, data):
-        d = dict(data)
-        for key in self.key_iterator(d):
-            d[key] = self.postProcess(d[key])
-        return d
-
-    def process(self, data):
-        data = data.squeeze()
-        if np.sum(data)==0:
-            # make the ball with radius 10 and center 50, 50, 50  as 1
-            sphere = np.ones((5, 5, 5))
-            data[250:255,250:255,50:55]=sphere
-        return data.unsqueeze(0)
+        return {self.keys[0]: np.expand_dims(new_data, axis=0), self.keys[1]: data_dictionary[self.keys[1]]}
 
 class SpatialCropCustomd(transforms.MapTransform):
+    """
+    Crop differently if the image is long or short (in the z axis)
+    """
     def __init__(
         self,
         roi_start_small: Tuple[int, int, int],
@@ -145,12 +133,14 @@ class SpatialCropCustomd(transforms.MapTransform):
         size_threshold: int,
         keys: List[str]):
         super().__init__(keys)
+        self.keys = keys
+        self.size_threshold = size_threshold
         self.crop_small = SpatialCropd(keys=keys, roi_start=roi_start_small, roi_end=roi_end_small)
         self.crop_large = SpatialCropd(keys=keys, roi_start=roi_start_large, roi_end=roi_end_large)
 
     def __call__(self, data):
         shape = data[self.keys[0]].shape
-        if shape[2] > self.size_threshold:
+        if shape[-1] > self.size_threshold:
             for key in self.key_iterator(data):
                 data = self.crop_large(data)
         else:
@@ -182,9 +172,9 @@ def main(
 
     ddp_setup(rank, world_size)
     test_img = sorted(glob.glob(os.path.join(data_dir_test, "*")))   # Capture .nii or .nii.gz files
-    test_data = [{"image": image} for image in test_img]
+    test_data = [{"image": image} for image in test_img][:2]
     train_img = sorted(glob.glob(os.path.join(data_dir_train, "*")))   # Capture .nii or .nii.gz files
-    train_data = [{"image": image} for image in train_img]
+    train_data = [{"image": image} for image in train_img][:2]
 
     test_transform = transforms.Compose(
         [
@@ -198,10 +188,10 @@ def main(
                 roi_end_large=(512-60, 512-110, 200),
                 size_threshold=250
             ),
-            transforms.CropForegroundd(
-                keys=["image"],
-                source_key="image"
-            ),
+            # transforms.CropForegroundd(
+            #     keys=["image"],
+            #     source_key="image"
+            # ),
             Orientationd(keys=["image"], axcodes="RAS"),
             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=3071, b_min=0.0, b_max=1.0, clip=True),
         ]
@@ -237,8 +227,9 @@ def main(
                 argmax=True
             ),
             KeepLargestConnectedComponentd(keys="pred", connectivity=1, num_components=1),
+            ToNumpyd(keys=["pred", "image"]),
             dilationErosionPostProcessd(keys=["pred", "image"]),
-            ifEmptyPostProcessd(keys=["pred"]),
+            # ifEmptyPostProcessd(keys=["pred"]),
             SaveImaged(keys="pred", output_dir=os.path.join(output_dir, 'test'), resample=False, output_postfix="", separate_folder=False),
         ]
     )
@@ -257,8 +248,9 @@ def main(
                 argmax=True
             ),
             KeepLargestConnectedComponentd(keys="pred", connectivity=1, num_components=1),
+            ToNumpyd(keys=["pred", "image"]),
             dilationErosionPostProcessd(keys=["pred", "image"]),
-            ifEmptyPostProcessd(keys=["pred"]),
+            # ifEmptyPostProcessd(keys=["pred"]),
             SaveImaged(keys="pred", output_dir=os.path.join(output_dir, 'train'), resample=False, output_postfix="", separate_folder=False),
         ]
     )
@@ -314,7 +306,20 @@ def main(
 
     # Using the code from Hackathon Organizer to generate the submission file
     if rank == 0:
-        submission_gen(output_dir, os.path.join(output_dir, "submission.csv"))
+        # Renmame output files
+        files = os.listdir(os.path.join(output_dir, "test"))
+        for file in files:
+            index = int(file.split(".")[0])
+            os.rename(os.path.join(output_dir, "test", file), os.path.join(output_dir, "test", f"LUNG1-{index:03d}.nii.gz"))
+
+        files = os.listdir(os.path.join(output_dir, "train"))
+        for file in files:
+            index = int(file.split(".")[0])
+            os.rename(os.path.join(output_dir, "train", file), os.path.join(output_dir, "train", f"LUNG1-{index:03d}.nii.gz"))
+
+        submission_gen(os.path.join(output_dir, "test"), os.path.join(output_dir, "test", "submission.csv"))
+        submission_gen(os.path.join(output_dir, "train"), os.path.join(output_dir, "train", "submission.csv"))
+
 
     destroy_process_group()
 

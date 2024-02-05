@@ -74,7 +74,6 @@ def get_loader(batch_size, data_dir, roi):
         {"image": image_name, "label": seg_name}
         for image_name, seg_name in zip(images, segs)
     ]
-    data_dicts = data_dicts[:10]
 
     train_files, val_files = train_test_split(data_dicts, train_size=0.99, random_state=0)
 
@@ -82,7 +81,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(70, 70, 0), roi_end=(512-60, 512-110, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -141,7 +140,7 @@ def get_loader(batch_size, data_dir, roi):
         [
             transforms.LoadImaged(keys=["image", "label"]),
             EnsureChannelFirstd(keys=["image", "label"]),
-            SpatialCropd(keys=["image", "label"], roi_start=(30, 30, 0), roi_end=(512-30, 512-100, 250)),
+            SpatialCropd(keys=["image", "label"], roi_start=(70, 70, 0), roi_end=(512-60, 512-110, 130)),
             transforms.CropForegroundd(
                 keys=["image", "label"],
                 source_key="image"
@@ -153,8 +152,8 @@ def get_loader(batch_size, data_dir, roi):
         ]
     )
 
-    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.1, num_workers=4)
-    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.1, num_workers=4)
+    train_ds = data.CacheDataset(data=train_files, transform=train_transform, cache_rate=0.5, num_workers=4)
+    val_ds = data.CacheDataset(data=val_files, transform=val_transform, cache_rate=0.5, num_workers=4)
 
     train_loader = data.DataLoader(
         train_ds,
@@ -264,7 +263,7 @@ class Trainer:
                 with torch.cuda.amp.autocast():
                     val_outputs = sliding_window_inference(
                         inputs, self.roi, sw_batch_size, self.model,
-                        overlap=0.8, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
+                        overlap=0.5, sw_device=self.gpu_id, device=self.gpu_id, mode="gaussian"
                     )
                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
                 val_labels = [post_label(i) for i in decollate_batch(labels)]

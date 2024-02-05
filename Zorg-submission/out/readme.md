@@ -1,0 +1,1 @@
+The output of the evaluation script will be the binary masks for the training and test data, saved in the `out` folder.
